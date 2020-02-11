@@ -77,6 +77,7 @@ export class BuildArtifacts extends cdk.Construct {
               },
               build: {
                 commands: [
+                  'cd amazon-kinesis-analytics-streaming-etl-master',
                   `mvn clean package -B -Dflink.version=${flinkVersion}`
                 ]
               }
@@ -85,6 +86,7 @@ export class BuildArtifacts extends cdk.Construct {
               files: [
                 'target/amazon-kinesis-analytics-*.jar'
               ],
+              'base-directory': 'amazon-kinesis-analytics-streaming-etl-master',
               'discard-paths': false
             }
           }),
