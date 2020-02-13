@@ -3368,33 +3368,7 @@
             }
           ],
           "Version": "2012-10-17"
-        },
-        "ManagedPolicyArns": [
-          {
-            "Fn::Join": [
-              "",
-              [
-                "arn:",
-                {
-                  "Ref": "AWS::Partition"
-                },
-                ":iam::aws:policy/AmazonKinesisFullAccess"
-              ]
-            ]
-          },
-          {
-            "Fn::Join": [
-              "",
-              [
-                "arn:",
-                {
-                  "Ref": "AWS::Partition"
-                },
-                ":iam::aws:policy/CloudWatchLogsFullAccess"
-              ]
-            ]
-          }
-        ]
+        }
       },
       "Metadata": {
         "aws:cdk:path": "CdkStack/KdaRole/Resource"
@@ -3407,36 +3381,26 @@
           "Statement": [
             {
               "Action": [
-                "s3:GetObject*",
-                "s3:GetBucket*",
+                "cloudwatch:PutMetricData",
+                "logs:PutLogEvents",
+                "logs:DescribeLogGroups",
+                "logs:DescribeLogStreams",
+                "kinesis:DescribeStream",
+                "kinesis:ListShards",
+                "kinesis:GetShardIterator",
+                "kinesis:GetRecords",
+                "kinesis:PutRecord",
+                "kinesis:PutRecords",
+                "s3:GetObject",
                 "s3:List*",
-                "s3:DeleteObject*",
-                "s3:PutObject*",
-                "s3:Abort*"
+                "s3:PutObject",
+                "s3:AbortMultipartUpload",
+                "es:ESHttpPut",
+                "es:ESHttpPost",
+                "es:ESHttpHead"
               ],
               "Effect": "Allow",
-              "Resource": [
-                {
-                  "Fn::GetAtt": [
-                    "Bucket83908E77",
-                    "Arn"
-                  ]
-                },
-                {
-                  "Fn::Join": [
-                    "",
-                    [
-                      {
-                        "Fn::GetAtt": [
-                          "Bucket83908E77",
-                          "Arn"
-                        ]
-                      },
-                      "/*"
-                    ]
-                  ]
-                }
-              ]
+              "Resource": "*"
             }
           ],
           "Version": "2012-10-17"
@@ -3888,36 +3852,45 @@
             }
           ],
           "Version": "2012-10-17"
+        }
+      },
+      "Metadata": {
+        "aws:cdk:path": "CdkStack/ReplayRole/Resource"
+      }
+    },
+    "ReplayRoleDefaultPolicy912FC29E": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "cloudwatch:PutMetricData",
+                "kinesis:DescribeStream",
+                "kinesis:ListShards",
+                "kinesis:GetShardIterator",
+                "kinesis:GetRecords",
+                "kinesis:PutRecord",
+                "kinesis:PutRecords",
+                "kinesisanalytics:StartApplication",
+                "s3:GetObject",
+                "s3:List*"
+              ],
+              "Effect": "Allow",
+              "Resource": "*"
+            }
+          ],
+          "Version": "2012-10-17"
         },
-        "ManagedPolicyArns": [
+        "PolicyName": "ReplayRoleDefaultPolicy912FC29E",
+        "Roles": [
           {
-            "Fn::Join": [
-              "",
-              [
-                "arn:",
-                {
-                  "Ref": "AWS::Partition"
-                },
-                ":iam::aws:policy/AmazonS3ReadOnlyAccess"
-              ]
-            ]
-          },
-          {
-            "Fn::Join": [
-              "",
-              [
-                "arn:",
-                {
-                  "Ref": "AWS::Partition"
-                },
-                ":iam::aws:policy/AmazonKinesisAnalyticsFullAccess"
-              ]
-            ]
+            "Ref": "ReplayRoleD94AFF0C"
           }
         ]
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/ReplayRole/Resource"
+        "aws:cdk:path": "CdkStack/ReplayRole/DefaultPolicy/Resource"
       }
     },
     "ProducerInstanceInstanceProfile4ABBC2A1": {
@@ -3991,7 +3964,14 @@
                 {
                   "Ref": "Bucket83908E77"
                 },
-                "/target/' .\""
+                "/target/' .\"\n/opt/aws/bin/cfn-signal -e $? --stack ",
+                {
+                  "Ref": "AWS::StackName"
+                },
+                " --resource ProducerInstance1BB510A3 --region ",
+                {
+                  "Ref": "AWS::Region"
+                }
               ]
             ]
           }
@@ -3999,8 +3979,14 @@
       },
       "DependsOn": [
         "BuildArtifactsKinesisReplayBuildPipelineWaitCondition802E8F7A",
+        "ReplayRoleDefaultPolicy912FC29E",
         "ReplayRoleD94AFF0C"
       ],
+      "CreationPolicy": {
+        "ResourceSignal": {
+          "Timeout": "PT5M"
+        }
+      },
       "Metadata": {
         "aws:cdk:path": "CdkStack/ProducerInstance/Resource"
       }
@@ -4025,6 +4011,18 @@
                 "Ref": "InputStreamCFB159EA"
               },
               "\",{\"period\":60,\"stat\":\"Sum\",\"yAxis\":\"right\"}]],\"yAxis\":{}}},{\"type\":\"metric\",\"width\":24,\"height\":6,\"x\":0,\"y\":6,\"properties\":{\"view\":\"timeSeries\",\"region\":\"",
+              {
+                "Ref": "AWS::Region"
+              },
+              "\",\"metrics\":[[\"AWS/Kinesis\",\"GetRecords.Records\",\"StreamName\",\"",
+              {
+                "Ref": "InputStreamCFB159EA"
+              },
+              "\",{\"period\":60,\"stat\":\"Sum\"}],[\"AWS/Kinesis\",\"GetRecords.Bytes\",\"StreamName\",\"",
+              {
+                "Ref": "InputStreamCFB159EA"
+              },
+              "\",{\"period\":60,\"stat\":\"Sum\",\"yAxis\":\"right\"}]],\"yAxis\":{}}},{\"type\":\"metric\",\"width\":24,\"height\":6,\"x\":0,\"y\":12,\"properties\":{\"view\":\"timeSeries\",\"region\":\"",
               {
                 "Ref": "AWS::Region"
               },
@@ -4059,16 +4057,21 @@
       }
     }
   },
-  "Parameters": {
-    "SshKeyName": {
-      "Type": "AWS::EC2::KeyPair::KeyName"
-    },
-    "SsmParameterValueawsserviceamiamazonlinuxlatestamzn2amihvmx8664gp2C96584B6F00A464EAD1953AFF4B05118Parameter": {
-      "Type": "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>",
-      "Default": "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2"
-    }
-  },
   "Outputs": {
+    "OutputBucket": {
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "https://console.aws.amazon.com/s3/buckets/",
+            {
+              "Ref": "Bucket83908E77"
+            },
+            "/streaming-etl-output/"
+          ]
+        ]
+      }
+    },
     "ProducerInstanceSsh": {
       "Value": {
         "Fn::Join": [
@@ -4111,6 +4114,29 @@
           ]
         ]
       }
+    },
+    "CloudwatchLogsInsights": {
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "https://console.aws.amazon.com/cloudwatch/home#logs-insights:queryDetail=~(end~0~source~'",
+            {
+              "Ref": "KdaLogGroup88624CAF"
+            },
+            "~start~-3600~timeType~'RELATIVE~unit~'seconds)"
+          ]
+        ]
+      }
+    }
+  },
+  "Parameters": {
+    "SshKeyName": {
+      "Type": "AWS::EC2::KeyPair::KeyName"
+    },
+    "SsmParameterValueawsserviceamiamazonlinuxlatestamzn2amihvmx8664gp2C96584B6F00A464EAD1953AFF4B05118Parameter": {
+      "Type": "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>",
+      "Default": "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2"
     }
   }
 }

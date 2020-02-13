@@ -28,10 +28,13 @@ export class StreamingEtl extends cdk.Stack {
       bucket: bucket
     });
 
+    new cdk.CfnOutput(this, `OutputBucket`, { value: `https://console.aws.amazon.com/s3/buckets/${bucket.bucketName}/streaming-etl-output/` });
+
+
 
     const artifacts = new BuildArtifacts(this, 'BuildArtifacts', {
       bucket: bucket
-    })
+    });
 
 
     const stream = new kds.Stream(this, 'InputStream', {
@@ -41,13 +44,19 @@ export class StreamingEtl extends cdk.Stack {
 
     const kdaRole = new iam.Role(this, 'KdaRole', {
       assumedBy: new iam.ServicePrincipal('kinesisanalytics.amazonaws.com'),
-      managedPolicies: [
-        iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonKinesisFullAccess'),
-        iam.ManagedPolicy.fromAwsManagedPolicyName('CloudWatchLogsFullAccess'),
-      ]
     });
 
-    bucket.grantReadWrite(kdaRole);
+    kdaRole.addToPolicy(new iam.PolicyStatement({
+      actions: [
+        'cloudwatch:PutMetricData',
+        'logs:PutLogEvents', 'logs:DescribeLogGroups', 'logs:DescribeLogStreams',
+        'kinesis:DescribeStream', 'kinesis:ListShards', 'kinesis:GetShardIterator', 'kinesis:GetRecords',
+        'kinesis:PutRecord', 'kinesis:PutRecords',
+        's3:GetObject', 's3:List*', 's3:PutObject', 's3:AbortMultipartUpload',
+        'es:ESHttpPut', 'es:ESHttpPost', 'es:ESHttpHead',
+      ],
+      resources: ['*']
+    }));
 
     const logGroup = new logs.LogGroup(this, 'KdaLogGroup', {
       retention: RetentionDays.ONE_WEEK
@@ -123,7 +132,6 @@ export class StreamingEtl extends cdk.Stack {
     }).valueAsString;
 
     const vpc = new ec2.Vpc(this, 'VPC', {
-      cidr: "10.0.0.0/16",
       subnetConfiguration: [
         {
           cidrMask: 24,
@@ -141,12 +149,20 @@ export class StreamingEtl extends cdk.Stack {
     sg.addIngressRule(sg, ec2.Port.allTraffic());
     
     const role = new iam.Role(this, 'ReplayRole', {
-        assumedBy: new iam.ServicePrincipal('ec2.amazonaws.com'),
-        managedPolicies: [
-          iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonS3ReadOnlyAccess'),
-          iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonKinesisAnalyticsFullAccess'),
-        ]
+        assumedBy: new iam.ServicePrincipal('ec2.amazonaws.com')
     });
+
+    role.addToPolicy(new iam.PolicyStatement({
+      actions: [
+        'cloudwatch:PutMetricData',
+        'kinesis:DescribeStream', 'kinesis:ListShards', 'kinesis:GetShardIterator', 'kinesis:GetRecords',
+        'kinesis:PutRecord', 'kinesis:PutRecords',
+        'kinesisanalytics:StartApplication',
+        's3:GetObject', 's3:List*',
+      ],
+      resources: ['*']
+    }));
+    
 
     const replayCopyCommand = `aws s3 cp --recursive --no-progress --exclude '*' --include 'amazon-kinesis-replay-*.jar' 's3://${bucket.bucketName}/target/' .`
 
@@ -169,9 +185,12 @@ export class StreamingEtl extends cdk.Stack {
       }),
       securityGroup: sg,
       userData: userData,
-      role: role
+      role: role,
+      resourceSignalTimeout: Duration.minutes(5)
     });
 
+    
+    userData.addCommands(`/opt/aws/bin/cfn-signal -e $? --stack ${cdk.Aws.STACK_NAME} --resource ${instance.instance.logicalId} --region ${cdk.Aws.REGION}`);
     instance.node.addDependency(artifacts.producerBuildSuccessWaitCondition);
 
     new cdk.CfnOutput(this, `ProducerInstanceSsh`, { value: `ssh ec2-user@${instance.instancePublicDnsName}` });
@@ -202,6 +221,26 @@ export class StreamingEtl extends cdk.Stack {
       statistic: 'sum'
     });
 
+    const outgoingRecords = new Metric({
+      namespace: 'AWS/Kinesis',
+      metricName: 'GetRecords.Records',
+      dimensions: {
+        StreamName: stream.streamName
+      },
+      period: Duration.minutes(1),
+      statistic: 'sum'
+    });
+
+    const outgoingBytes = new Metric({
+      namespace: 'AWS/Kinesis',
+      metricName: 'GetRecords.Bytes',
+      dimensions: {
+        StreamName: stream.streamName
+      },
+      period: Duration.minutes(1),
+      statistic: 'sum'
+    });
+
     const millisBehindLatest = new Metric({
       namespace: 'AWS/KinesisAnalytics',
       metricName: 'millisBehindLatest',
@@ -220,16 +259,25 @@ export class StreamingEtl extends cdk.Stack {
         left: [incomingRecords],
         right: [incomingBytes],
         width: 24
-      })  
+      })
+    );
+
+    dashboard.addWidgets(
+      new cloudwatch.GraphWidget({
+        left: [outgoingRecords],
+        right: [outgoingBytes],
+        width: 24
+      })
     );
 
     dashboard.addWidgets(
       new cloudwatch.GraphWidget({
         left: [millisBehindLatest],
         width: 24
-      })  
+      })
     );
 
-    new cdk.CfnOutput(this, `CloudwatchDashboard`, { value: `https://console.aws.amazon.com/cloudwatch/home#dashboards:name=${cdk.Aws.STACK_NAME}` });
+    new cdk.CfnOutput(this, 'CloudwatchDashboard', { value: `https://console.aws.amazon.com/cloudwatch/home#dashboards:name=${cdk.Aws.STACK_NAME}` });
+    new cdk.CfnOutput(this, 'CloudwatchLogsInsights', { value: `https://console.aws.amazon.com/cloudwatch/home#logs-insights:queryDetail=~(end~0~source~'${logGroup.logGroupName}~start~-3600~timeType~'RELATIVE~unit~'seconds)` });
   }
 }
