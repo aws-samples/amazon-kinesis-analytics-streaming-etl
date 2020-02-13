@@ -21,7 +21,9 @@ You can find a further details and a more thorough description and discussion of
 
 If you want to play around with the architecture, launch this [AWS CloudFormation template](https://github.com/aws-samples/amazon-kinesis-analytics-streaming-etl/blob/master/cdk/cdk.out/CdkStack.template.json) in your AWS account. The template creates a Kinesis data stream and replays a historic set of set of taxi trips into the data stream. The events are then read by a Kinesis Data Analytics application and persisted to Amazon S3 in Parquet format and partitioned by event time.
 
-To populate the Kinesis data stream, we use a Java application that replays a public dataset of historic taxi trips made in New York City into the data stream. The Java application has already been downloaded to an Amazon EC2 instance that was provisioned by AWS CloudFormation. You just need to connect to the instance and execute the JAR file to start ingesting events into the stream.
+To populate the Kinesis data stream, we use a Java application that replays a public dataset of historic taxi trips made in New York City into the data stream. Each event describes a taxi trip made in New York City and includes timestamps for the start and end of a trip, information on the boroughs the trip started and ended in, and various details on the fare of the trip. 
+
+The Java application has already been downloaded to an Amazon EC2 instance that was provisioned by AWS CloudFormation. You just need to connect to the instance and execute the JAR file to start ingesting events into the stream.
 
 ```
 $ ssh ec2-user@«Replay instance DNS name»
@@ -29,7 +31,7 @@ $ ssh ec2-user@«Replay instance DNS name»
 $ java -jar amazon-kinesis-replay-1.0-SNAPSHOT.jar -noWatermark -objectPrefix artifacts/kinesis-analytics-taxi-consumer/taxi-trips-partitioned.json.lz4/dropoff_year=2018/ -streamName «Kinesis stream name» -speedup 3600
 ```
 
-Note that you can obtain these commands, including their correct parameters, from the output section of the AWS CloudFormation template that you executed previously.
+You can obtain these commands, including their correct parameters, from the output section of the AWS CloudFormation template that you executed previously.
 
 
 ## Configuration options
@@ -46,7 +48,7 @@ For services that are integrated with AWS Identity and Access Management (IAM), 
 
 ### Amazon Kinesis Data Streams
 
-Amazon Kinesis Data Streams can be used as source and sink. To configure a Kinesis data stream as a source or sink, include these parameters in the application's properties:
+Amazon Kinesis Data Streams can be used as source and sink. To configure a Kinesis data stream as a source or sink, include these parameters in the application's properties.
 
 - **InputKinesisStream**: the name of the Kinesis data stream to read data from
 - **InputStreamRegion** (optional): the region of the Kinesis data stream, defaults to the region of the KDA application
@@ -63,7 +65,7 @@ Apache Kafka and Amazon MSK clusters can be used as sources and sinks by includi
 - **OutputKafkaBootstrapServers**: comma separated list of broker DNS names and port pairs for the initial connection
 - **OutputKafkaTopic**: the name of the topic to read data from
 
-To access Kafka or MSK clusters, you need to configure the Kinesis Data Analytics application to connect to private subnets in your VPC.  Kinesis Data Analytics then creates elastic network interfaces in one or more of the subnets provided in your VPC configuration for the application and can access resources that have network connectivity from the configured subnets. This also includes resources that are not directly contained in these subnets but are reachable over a [VPN connection](https://docs.aws.amazon.com/vpc/latest/userguide/vpn-connections.html) or through [VPC peering](https://docs.aws.amazon.com/vpc/latest/userguide/vpc-peering.html). This configuration also supports endpoints that are available over the public internet, if a [NAT gateway has been configured](https://docs.aws.amazon.com/kinesisanalytics/latest/java/vpc-internet.html) for the respective subnets.
+To access Kafka or MSK clusters, you need to configure the Kinesis Data Analytics application to connect to private subnets in your VPC. Kinesis Data Analytics then creates elastic network interfaces in one or more of the subnets provided in your VPC configuration for the application and can access resources that have network connectivity from the configured subnets. This also includes resources that are not directly contained in these subnets but are reachable over a [VPN connection](https://docs.aws.amazon.com/vpc/latest/userguide/vpn-connections.html) or through [VPC peering](https://docs.aws.amazon.com/vpc/latest/userguide/vpc-peering.html). This configuration also supports endpoints that are available over the public internet, if a [NAT gateway has been configured](https://docs.aws.amazon.com/kinesisanalytics/latest/java/vpc-internet.html) for the respective subnets.
 
 <img src="misc/kda-vpc-config.png?raw=true" width="600" style="display: block; margin-left: auto; margin-right: auto;">
 
@@ -77,6 +79,8 @@ To write output to Amazon S3 include the following parameters in the application
 - **OutputBucket**: name of the Amazon S3 bucket to persist data to
 - **ParquetConversion** optional: whether output should be converted to Apache Parquet format, defaults to `true`
 
+The output on Amazon S3 will be partitioned by boroughs and by the pickup time of the respective events.
+
 ### Amazon Elasticsearch Service
 
 To write output to Elasticsearch include the following parameters in the application's properties:
@@ -84,6 +88,7 @@ To write output to Elasticsearch include the following parameters in the applica
 - **OutputElasticsearchEndpoint**: the URL to the Elasticsearch endpoint 
 - **ElasticsearchRegion** (optional): the region of the Elasticsearch endpoint, defaults to the region of the KDA application
 
+The payload of the event determines the index and ids of documents written to Amazon Elasticsearch Service. More precisely, the event type is mapped to an index (and document type) and the trip id is mapped to the document id.
 
 ## License
 
