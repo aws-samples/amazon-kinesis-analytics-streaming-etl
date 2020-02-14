@@ -57,7 +57,7 @@ Amazon Kinesis Data Streams can be used as source and sink. To configure a Kines
 - **OutputKinesisStream**: the name of the Kinesis data stream to write data to
 - **OutputStreamRegion** (optional): the region of the Kinesis data stream, defaults to the region of the KDA application
 
-The Kinesis data stream can be in the same or in a different region. You also can use an [Interface VPC Endpoints]((#gateway-and-interface-vpc-endpoints)) (AWS PrivateLink) to privately connect to your Kinesis data stream.
+The Kinesis data stream can be in the same or in a different region. You also can use an [Interface VPC Endpoints](#gateway-and-interface-vpc-endpoints) (AWS PrivateLink) to privately connect to your Kinesis data stream.
 
 #### Amazon Managed Streaming for Apache Kafka (Amazon MSK)
 
@@ -102,7 +102,7 @@ When you are leveraging VPC peering, eg, to connect to an MSK cluster or Amazon 
 
 When you enable VPC support and need to connect to endpoints that are available over the public internet at the same time, make sure that a [NAT gateway has been configured](https://docs.aws.amazon.com/kinesisanalytics/latest/java/vpc-internet.html) for the respective subnets.
 
-### Gateway and interface VPC Endpoints
+### Gateway and Interface VPC Endpoints
 
 You can also use [Gateway](https://docs.aws.amazon.com/vpc/latest/userguide/vpce-gateway.html) and [Interface](https://docs.aws.amazon.com/vpc/latest/userguide/vpce-interface.html) VPC Endpoints to privately connect to supported AWS services.
 
