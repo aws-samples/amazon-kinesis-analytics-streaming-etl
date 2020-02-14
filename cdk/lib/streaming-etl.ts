@@ -19,6 +19,8 @@ export class StreamingEtl extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
+    this.templateOptions.description = 'Creates a sample streaming ETL pipeline based on Apache Flink and Amazon Kinesis Data Analytics that reads data from a Kinesis data stream and persists it to Amazon S3 (shausma-streaming-etl)';
+
     const bucket = new s3.Bucket(this, 'Bucket', {
       versioned: true,
       removalPolicy: RemovalPolicy.DESTROY

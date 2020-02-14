@@ -1,4 +1,5 @@
 {
+  "Description": "Creates a sample streaming ETL pipeline based on Apache Flink and Amazon Kinesis Data Analytics that reads data from a Kinesis data stream and persists it to Amazon S3 (shausma-streaming-etl)",
   "Resources": {
     "Bucket83908E77": {
       "Type": "AWS::S3::Bucket",
