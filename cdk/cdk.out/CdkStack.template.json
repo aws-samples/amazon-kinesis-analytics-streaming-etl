@@ -1,9 +1,30 @@
 {
-  "Description": "Creates a sample streaming ETL pipeline based on Apache Flink and Amazon Kinesis Data Analytics that reads data from a Kinesis data stream and persists it to Amazon S3 (shausma-streaming-etl)",
+  "Description": "Creates a sample streaming ETL pipeline based on Apache Flink and Amazon Kinesis Data Analytics that reads data from a Kinesis data stream and persists it to Amazon S3 (shausma-kda-streaming-etl)",
   "Resources": {
     "Bucket83908E77": {
       "Type": "AWS::S3::Bucket",
       "Properties": {
+        "LifecycleConfiguration": {
+          "Rules": [
+            {
+              "AbortIncompleteMultipartUpload": {
+                "DaysAfterInitiation": 7
+              },
+              "Status": "Enabled"
+            }
+          ]
+        },
+        "MetricsConfigurations": [
+          {
+            "Id": "EntireBucket"
+          }
+        ],
+        "PublicAccessBlockConfiguration": {
+          "BlockPublicAcls": true,
+          "BlockPublicPolicy": true,
+          "IgnorePublicAcls": true,
+          "RestrictPublicBuckets": true
+        },
         "VersioningConfiguration": {
           "Status": "Enabled"
         }
@@ -4045,7 +4066,19 @@
                   }
                 ]
               },
-              "\",{\"period\":60,\"stat\":\"Maximum\"}]],\"yAxis\":{}}}]}"
+              "\",{\"period\":60,\"stat\":\"Maximum\"}]],\"yAxis\":{}}},{\"type\":\"metric\",\"width\":24,\"height\":6,\"x\":0,\"y\":18,\"properties\":{\"view\":\"timeSeries\",\"region\":\"",
+              {
+                "Ref": "AWS::Region"
+              },
+              "\",\"metrics\":[[\"AWS/S3\",\"PutRequests\",\"BucketName\",\"",
+              {
+                "Ref": "Bucket83908E77"
+              },
+              "\",\"FilterId\",\"EntireBucket\",{\"period\":60,\"stat\":\"Sum\"}],[\"AWS/S3\",\"BytesUploaded\",\"BucketName\",\"",
+              {
+                "Ref": "Bucket83908E77"
+              },
+              "\",\"FilterId\",\"EntireBucket\",{\"period\":60,\"stat\":\"Sum\",\"yAxis\":\"right\"}]],\"yAxis\":{}}}]}"
             ]
           ]
         },

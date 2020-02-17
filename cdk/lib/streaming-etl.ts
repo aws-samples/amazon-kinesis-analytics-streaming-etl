@@ -19,12 +19,20 @@ export class StreamingEtl extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    this.templateOptions.description = 'Creates a sample streaming ETL pipeline based on Apache Flink and Amazon Kinesis Data Analytics that reads data from a Kinesis data stream and persists it to Amazon S3 (shausma-streaming-etl)';
+    this.templateOptions.description = 'Creates a sample streaming ETL pipeline based on Apache Flink and Amazon Kinesis Data Analytics that reads data from a Kinesis data stream and persists it to Amazon S3 (shausma-kda-streaming-etl)';
 
     const bucket = new s3.Bucket(this, 'Bucket', {
       versioned: true,
-      removalPolicy: RemovalPolicy.DESTROY
+      removalPolicy: RemovalPolicy.DESTROY,
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      metrics: [{
+        id: 'EntireBucket',
+      }],
+      lifecycleRules: [{
+        abortIncompleteMultipartUploadAfter: Duration.days(7)
+      }]
     });
+
 
     new EmptyBucketOnDelete(this, 'EmptyBucket', {
       bucket: bucket
@@ -255,6 +263,28 @@ export class StreamingEtl extends cdk.Stack {
       statistic: 'max'
     });
 
+    const bytesUploaded = new Metric({
+      namespace: 'AWS/S3',
+      metricName: 'BytesUploaded',
+      dimensions: {
+        BucketName: bucket.bucketName,
+        FilterId: 'EntireBucket'
+      },
+      period: Duration.minutes(1),
+      statistic: 'sum'
+    });
+
+    const putRequests = new Metric({
+      namespace: 'AWS/S3',
+      metricName: 'PutRequests',
+      dimensions: {
+        BucketName: bucket.bucketName,
+        FilterId: 'EntireBucket'
+      },
+      period: Duration.minutes(1),
+      statistic: 'sum'
+    });
+    
 
     dashboard.addWidgets(
       new cloudwatch.GraphWidget({
@@ -275,6 +305,14 @@ export class StreamingEtl extends cdk.Stack {
     dashboard.addWidgets(
       new cloudwatch.GraphWidget({
         left: [millisBehindLatest],
+        width: 24
+      })
+    );
+
+    dashboard.addWidgets(
+      new cloudwatch.GraphWidget({
+        left: [putRequests],
+        right: [bytesUploaded],
         width: 24
       })
     );
