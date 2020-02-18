@@ -1,4 +1,4 @@
-import * as cdk from '@aws-cdk/core';
+import cdk = require('@aws-cdk/core');
 import s3 = require('@aws-cdk/aws-s3');
 import ec2 = require('@aws-cdk/aws-ec2');
 import iam = require('@aws-cdk/aws-iam');
@@ -107,7 +107,7 @@ export class StreamingEtl extends cdk.Stack {
             },
             checkpointConfiguration: {
               configurationType: "CUSTOM",
-              checkpointInterval: 60_000,
+              checkpointInterval: 300_000,
               minPauseBetweenCheckpoints: 60_000,
               checkpointingEnabled: true
             }
@@ -293,7 +293,13 @@ export class StreamingEtl extends cdk.Stack {
         left: [incomingRecords],
         right: [incomingBytes],
         width: 24,
-        title: 'Kinesis data stream (incoming)'
+        title: 'Kinesis data stream (incoming)',
+        leftYAxis: {
+          min: 0
+        },
+        rightYAxis: {
+          min: 0
+        }
       })
     );
 
@@ -302,18 +308,30 @@ export class StreamingEtl extends cdk.Stack {
         left: [outgoingRecords],
         right: [outgoingBytes],
         width: 24,
-        title: 'Kinesis data stream (outgoing)'
+        title: 'Kinesis data stream (outgoing)',
+        leftYAxis: {
+          min: 0
+        },
+        rightYAxis: {
+          min: 0
+        }
       })
     );
 
     dashboard.addWidgets(
       new cloudwatch.GraphWidget({
-        left: [millisBehindLatest],
+        left: [
+          millisBehindLatest,
+          millisBehindLatest.with({
+            statistic: "avg"
+          })
+        ],
         width: 24,
         title: 'Flink consumer lag',
         leftYAxis: {
           label: 'milliseconds',
-          showUnits: false
+          showUnits: false,
+          min: 0
         }
       })
     );
@@ -323,7 +341,13 @@ export class StreamingEtl extends cdk.Stack {
         left: [putRequests],
         right: [bytesUploaded],
         width: 24,
-        title: 'Amazon S3 (incoming)'
+        title: 'Amazon S3 (incoming)',
+        leftYAxis: {
+          min: 0
+        },
+        rightYAxis: {
+          min: 0
+        }
       })
     );
 

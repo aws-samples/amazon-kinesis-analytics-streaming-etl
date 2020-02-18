@@ -3517,7 +3517,7 @@
           },
           "FlinkApplicationConfiguration": {
             "CheckpointConfiguration": {
-              "CheckpointInterval": 60000,
+              "CheckpointInterval": 300000,
               "CheckpointingEnabled": true,
               "ConfigurationType": "CUSTOM",
               "MinPauseBetweenCheckpoints": 60000
@@ -4042,7 +4042,7 @@
               {
                 "Ref": "InputStreamCFB159EA"
               },
-              "\",{\"period\":60,\"stat\":\"Sum\",\"yAxis\":\"right\"}]],\"yAxis\":{}}},{\"type\":\"metric\",\"width\":24,\"height\":6,\"x\":0,\"y\":6,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Kinesis data stream (outgoing)\",\"region\":\"",
+              "\",{\"period\":60,\"stat\":\"Sum\",\"yAxis\":\"right\"}]],\"yAxis\":{\"left\":{\"min\":0},\"right\":{\"min\":0}}}},{\"type\":\"metric\",\"width\":24,\"height\":6,\"x\":0,\"y\":6,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Kinesis data stream (outgoing)\",\"region\":\"",
               {
                 "Ref": "AWS::Region"
               },
@@ -4054,7 +4054,7 @@
               {
                 "Ref": "InputStreamCFB159EA"
               },
-              "\",{\"period\":60,\"stat\":\"Sum\",\"yAxis\":\"right\"}]],\"yAxis\":{}}},{\"type\":\"metric\",\"width\":24,\"height\":6,\"x\":0,\"y\":12,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Flink consumer lag\",\"region\":\"",
+              "\",{\"period\":60,\"stat\":\"Sum\",\"yAxis\":\"right\"}]],\"yAxis\":{\"left\":{\"min\":0},\"right\":{\"min\":0}}}},{\"type\":\"metric\",\"width\":24,\"height\":6,\"x\":0,\"y\":12,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Flink consumer lag\",\"region\":\"",
               {
                 "Ref": "AWS::Region"
               },
@@ -4076,7 +4076,25 @@
                   }
                 ]
               },
-              "\",{\"period\":60,\"stat\":\"Maximum\"}]],\"yAxis\":{\"left\":{\"label\":\"milliseconds\",\"showUnits\":false}}}},{\"type\":\"metric\",\"width\":24,\"height\":6,\"x\":0,\"y\":18,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Amazon S3 (incoming)\",\"region\":\"",
+              "\",{\"period\":60,\"stat\":\"Maximum\"}],[\"AWS/KinesisAnalytics\",\"millisBehindLatest\",\"Application\",\"",
+              {
+                "Ref": "KdaApplication"
+              },
+              "\",\"Flow\",\"Input\",\"Id\",\"",
+              {
+                "Fn::Join": [
+                  "_",
+                  {
+                    "Fn::Split": [
+                      "-",
+                      {
+                        "Ref": "InputStreamCFB159EA"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "\",{\"period\":60}]],\"yAxis\":{\"left\":{\"label\":\"milliseconds\",\"showUnits\":false,\"min\":0}}}},{\"type\":\"metric\",\"width\":24,\"height\":6,\"x\":0,\"y\":18,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Amazon S3 (incoming)\",\"region\":\"",
               {
                 "Ref": "AWS::Region"
               },
@@ -4088,7 +4106,7 @@
               {
                 "Ref": "Bucket83908E77"
               },
-              "\",\"FilterId\",\"EntireBucket\",{\"period\":60,\"stat\":\"Sum\",\"yAxis\":\"right\"}]],\"yAxis\":{}}}]}"
+              "\",\"FilterId\",\"EntireBucket\",{\"period\":60,\"stat\":\"Sum\",\"yAxis\":\"right\"}]],\"yAxis\":{\"left\":{\"min\":0},\"right\":{\"min\":0}}}}]}"
             ]
           ]
         },

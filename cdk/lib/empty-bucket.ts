@@ -29,7 +29,7 @@ export class EmptyBucketOnDelete extends cdk.Construct {
 
         props.bucket.grantReadWrite(emptyBucketLambda);
 
-        const emptyBucketResource = new cfn.CustomResource(this, 'EmptyBucketResource', {
+        new cfn.CustomResource(this, 'EmptyBucketResource', {
             provider: CustomResourceProvider.lambda(emptyBucketLambda)
         });
     }
