@@ -32,7 +32,7 @@
       "UpdateReplacePolicy": "Delete",
       "DeletionPolicy": "Delete",
       "Metadata": {
-        "aws:cdk:path": "CdkStack/Bucket/Resource"
+        "aws:cdk:path": "StreamingEtl/Bucket/Resource"
       }
     },
     "EmptyBucketEmptyBucketLambdaServiceRole67452BDD": {
@@ -66,7 +66,7 @@
         ]
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/EmptyBucket/EmptyBucketLambda/ServiceRole/Resource"
+        "aws:cdk:path": "StreamingEtl/EmptyBucket/EmptyBucketLambda/ServiceRole/Resource"
       }
     },
     "EmptyBucketEmptyBucketLambdaServiceRoleDefaultPolicy0872AADF": {
@@ -118,14 +118,14 @@
         ]
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/EmptyBucket/EmptyBucketLambda/ServiceRole/DefaultPolicy/Resource"
+        "aws:cdk:path": "StreamingEtl/EmptyBucket/EmptyBucketLambda/ServiceRole/DefaultPolicy/Resource"
       }
     },
     "EmptyBucketEmptyBucketLambdaD0E9E93D": {
       "Type": "AWS::Lambda::Function",
       "Properties": {
         "Code": {
-          "ZipFile": "import os\nimport json\nimport boto3\nimport traceback\nimport cfnresponse\n\ndef empty_bucket(event, context):\n    bucket_name = os.environ['bucket_name']\n\n    try:\n        if event['RequestType'] == 'Delete':\n            print(\"empty bucket: \" + bucket_name)\n            \n            bucket = boto3.resource('s3').Bucket(bucket_name)\n            print(json.dumps(bucket.object_versions.delete()))\n\n        cfnresponse.send(event, context, cfnresponse.SUCCESS, {})\n    except Exception:\n        traceback.print_exc()\n\n        cfnresponse.send(event, context, cfnresponse.FAILED, {})"
+          "ZipFile": "import os\nimport json\nimport boto3\nimport traceback\nimport cfnresponse\n\ndef empty_bucket(event, context):\n    bucket_name = os.environ['bucket_name']\n\n    try:\n        if event['RequestType'] == 'Delete':\n            print(\"empty bucket: \" + bucket_name)\n            \n            bucket = boto3.resource('s3').Bucket(bucket_name)\n            bucket.object_versions.delete()\n\n        cfnresponse.send(event, context, cfnresponse.SUCCESS, {})\n    except Exception:\n        traceback.print_exc()\n\n        cfnresponse.send(event, context, cfnresponse.FAILED, {})"
         },
         "Handler": "index.empty_bucket",
         "Role": {
@@ -149,7 +149,7 @@
         "EmptyBucketEmptyBucketLambdaServiceRole67452BDD"
       ],
       "Metadata": {
-        "aws:cdk:path": "CdkStack/EmptyBucket/EmptyBucketLambda/Resource"
+        "aws:cdk:path": "StreamingEtl/EmptyBucket/EmptyBucketLambda/Resource"
       }
     },
     "EmptyBucketEmptyBucketResource78AC492E": {
@@ -165,7 +165,7 @@
       "UpdateReplacePolicy": "Delete",
       "DeletionPolicy": "Delete",
       "Metadata": {
-        "aws:cdk:path": "CdkStack/EmptyBucket/EmptyBucketResource/Default"
+        "aws:cdk:path": "StreamingEtl/EmptyBucket/EmptyBucketResource/Default"
       }
     },
     "BuildArtifactsKinesisReplayBuildPipelineDownloadLambdaServiceRole2EE1C83A": {
@@ -199,7 +199,7 @@
         ]
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/KinesisReplayBuildPipeline/DownloadLambda/ServiceRole/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/KinesisReplayBuildPipeline/DownloadLambda/ServiceRole/Resource"
       }
     },
     "BuildArtifactsKinesisReplayBuildPipelineDownloadLambdaServiceRoleDefaultPolicy6401CF0F": {
@@ -239,14 +239,14 @@
         ]
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/KinesisReplayBuildPipeline/DownloadLambda/ServiceRole/DefaultPolicy/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/KinesisReplayBuildPipeline/DownloadLambda/ServiceRole/DefaultPolicy/Resource"
       }
     },
     "BuildArtifactsKinesisReplayBuildPipelineDownloadLambda785E80B0": {
       "Type": "AWS::Lambda::Function",
       "Properties": {
         "Code": {
-          "ZipFile": "import os\nimport json\nimport boto3\nimport traceback\nimport cfnresponse\nimport urllib.request\n\ns3client = boto3.client('s3')\ncode_pipeline = boto3.client('codepipeline')\n\n\ndef download_sources(event, context):\n    url = os.environ['url']\n    bucket = os.environ['bucket']\n    key = os.environ['key']\n\n    try:\n        req = urllib.request.Request(url)\n        response = urllib.request.urlopen(req)\n\n        s3client.put_object(Bucket=bucket, Key=key, Body=response.read())\n\n        cfnresponse.send(event, context, cfnresponse.SUCCESS, {})\n    except Exception:\n        traceback.print_exc()\n\n        cfnresponse.send(event, context, cfnresponse.FAILED, {})\n\n\ndef notify_build_success(event, context):\n    job_id = event['CodePipeline.job']['id']\n\n    url = os.environ['waitHandleUrl']\n    headers = { \"Content-Type\": \"\" }\n    data = { \"Status\": \"SUCCESS\", \"Reason\": \"Compilation Succeeded\", \"UniqueId\": job_id, \"Data\": \"Compilation Succeeded\" }\n\n    try:\n        req = urllib.request.Request(url, headers=headers, data=bytes(json.dumps(data), encoding=\"utf-8\"), method='PUT')\n        response = urllib.request.urlopen(req)\n\n        code_pipeline.put_job_success_result(jobId=job_id)\n    except Exception:\n        traceback.print_exc()\n\n        code_pipeline.put_job_failure_result(jobId=job_id, failureDetails={'type': 'JobFailed'})\n"
+          "ZipFile": "import os\nimport json\nimport boto3\nimport traceback\nimport cfnresponse\nimport urllib.request\n\ns3client = boto3.client('s3')\ncode_pipeline = boto3.client('codepipeline')\n\n\ndef download_sources(event, context):\n    url = os.environ['url']\n    bucket = os.environ['bucket']\n    key = os.environ['key']\n\n    try:\n        if event['RequestType'] != 'Delete':\n            req = urllib.request.Request(url)\n            response = urllib.request.urlopen(req)\n\n            s3client.put_object(Bucket=bucket, Key=key, Body=response.read())\n\n        cfnresponse.send(event, context, cfnresponse.SUCCESS, {})\n    except Exception:\n        traceback.print_exc()\n\n        cfnresponse.send(event, context, cfnresponse.FAILED, {})\n\n\ndef notify_build_success(event, context):\n    job_id = event['CodePipeline.job']['id']\n\n    url = os.environ['waitHandleUrl']\n    headers = { \"Content-Type\": \"\" }\n    data = { \"Status\": \"SUCCESS\", \"Reason\": \"Compilation Succeeded\", \"UniqueId\": job_id, \"Data\": \"Compilation Succeeded\" }\n\n    try:\n        req = urllib.request.Request(url, headers=headers, data=bytes(json.dumps(data), encoding=\"utf-8\"), method='PUT')\n        response = urllib.request.urlopen(req)\n\n        code_pipeline.put_job_success_result(jobId=job_id)\n    except Exception:\n        traceback.print_exc()\n\n        code_pipeline.put_job_failure_result(jobId=job_id, failureDetails={'type': 'JobFailed'})\n"
         },
         "Handler": "index.download_sources",
         "Role": {
@@ -272,7 +272,7 @@
         "BuildArtifactsKinesisReplayBuildPipelineDownloadLambdaServiceRole2EE1C83A"
       ],
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/KinesisReplayBuildPipeline/DownloadLambda/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/KinesisReplayBuildPipeline/DownloadLambda/Resource"
       }
     },
     "BuildArtifactsKinesisReplayBuildPipelineDownloadLambdaResourceD172C062": {
@@ -288,7 +288,7 @@
       "UpdateReplacePolicy": "Delete",
       "DeletionPolicy": "Delete",
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/KinesisReplayBuildPipeline/DownloadLambdaResource/Default"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/KinesisReplayBuildPipeline/DownloadLambdaResource/Default"
       }
     },
     "BuildArtifactsKinesisReplayBuildPipelineCodebuildProjectRoleC03B309E": {
@@ -308,7 +308,7 @@
         }
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/KinesisReplayBuildPipeline/CodebuildProject/Role/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/KinesisReplayBuildPipeline/CodebuildProject/Role/Resource"
       }
     },
     "BuildArtifactsKinesisReplayBuildPipelineCodebuildProjectRoleDefaultPolicy603A0685": {
@@ -417,7 +417,7 @@
         ]
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/KinesisReplayBuildPipeline/CodebuildProject/Role/DefaultPolicy/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/KinesisReplayBuildPipeline/CodebuildProject/Role/DefaultPolicy/Resource"
       }
     },
     "BuildArtifactsKinesisReplayBuildPipelineCodebuildProjectE4AAC06C": {
@@ -444,13 +444,13 @@
         }
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/KinesisReplayBuildPipeline/CodebuildProject/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/KinesisReplayBuildPipeline/CodebuildProject/Resource"
       }
     },
     "BuildArtifactsKinesisReplayBuildPipelineWaitHandleFBBC32B4": {
       "Type": "AWS::CloudFormation::WaitConditionHandle",
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/KinesisReplayBuildPipeline/WaitHandle"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/KinesisReplayBuildPipeline/WaitHandle"
       }
     },
     "BuildArtifactsKinesisReplayBuildPipelineWaitCondition802E8F7A": {
@@ -463,7 +463,7 @@
         "Timeout": "1200"
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/KinesisReplayBuildPipeline/WaitCondition"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/KinesisReplayBuildPipeline/WaitCondition"
       }
     },
     "BuildArtifactsKinesisReplayBuildPipelineNotifyLambdaServiceRole872E82C0": {
@@ -497,7 +497,7 @@
         ]
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/KinesisReplayBuildPipeline/NotifyLambda/ServiceRole/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/KinesisReplayBuildPipeline/NotifyLambda/ServiceRole/Resource"
       }
     },
     "BuildArtifactsKinesisReplayBuildPipelineNotifyLambdaServiceRoleDefaultPolicyE0F9F257": {
@@ -524,14 +524,14 @@
         ]
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/KinesisReplayBuildPipeline/NotifyLambda/ServiceRole/DefaultPolicy/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/KinesisReplayBuildPipeline/NotifyLambda/ServiceRole/DefaultPolicy/Resource"
       }
     },
     "BuildArtifactsKinesisReplayBuildPipelineNotifyLambdaC424E2CA": {
       "Type": "AWS::Lambda::Function",
       "Properties": {
         "Code": {
-          "ZipFile": "import os\nimport json\nimport boto3\nimport traceback\nimport cfnresponse\nimport urllib.request\n\ns3client = boto3.client('s3')\ncode_pipeline = boto3.client('codepipeline')\n\n\ndef download_sources(event, context):\n    url = os.environ['url']\n    bucket = os.environ['bucket']\n    key = os.environ['key']\n\n    try:\n        req = urllib.request.Request(url)\n        response = urllib.request.urlopen(req)\n\n        s3client.put_object(Bucket=bucket, Key=key, Body=response.read())\n\n        cfnresponse.send(event, context, cfnresponse.SUCCESS, {})\n    except Exception:\n        traceback.print_exc()\n\n        cfnresponse.send(event, context, cfnresponse.FAILED, {})\n\n\ndef notify_build_success(event, context):\n    job_id = event['CodePipeline.job']['id']\n\n    url = os.environ['waitHandleUrl']\n    headers = { \"Content-Type\": \"\" }\n    data = { \"Status\": \"SUCCESS\", \"Reason\": \"Compilation Succeeded\", \"UniqueId\": job_id, \"Data\": \"Compilation Succeeded\" }\n\n    try:\n        req = urllib.request.Request(url, headers=headers, data=bytes(json.dumps(data), encoding=\"utf-8\"), method='PUT')\n        response = urllib.request.urlopen(req)\n\n        code_pipeline.put_job_success_result(jobId=job_id)\n    except Exception:\n        traceback.print_exc()\n\n        code_pipeline.put_job_failure_result(jobId=job_id, failureDetails={'type': 'JobFailed'})\n"
+          "ZipFile": "import os\nimport json\nimport boto3\nimport traceback\nimport cfnresponse\nimport urllib.request\n\ns3client = boto3.client('s3')\ncode_pipeline = boto3.client('codepipeline')\n\n\ndef download_sources(event, context):\n    url = os.environ['url']\n    bucket = os.environ['bucket']\n    key = os.environ['key']\n\n    try:\n        if event['RequestType'] != 'Delete':\n            req = urllib.request.Request(url)\n            response = urllib.request.urlopen(req)\n\n            s3client.put_object(Bucket=bucket, Key=key, Body=response.read())\n\n        cfnresponse.send(event, context, cfnresponse.SUCCESS, {})\n    except Exception:\n        traceback.print_exc()\n\n        cfnresponse.send(event, context, cfnresponse.FAILED, {})\n\n\ndef notify_build_success(event, context):\n    job_id = event['CodePipeline.job']['id']\n\n    url = os.environ['waitHandleUrl']\n    headers = { \"Content-Type\": \"\" }\n    data = { \"Status\": \"SUCCESS\", \"Reason\": \"Compilation Succeeded\", \"UniqueId\": job_id, \"Data\": \"Compilation Succeeded\" }\n\n    try:\n        req = urllib.request.Request(url, headers=headers, data=bytes(json.dumps(data), encoding=\"utf-8\"), method='PUT')\n        response = urllib.request.urlopen(req)\n\n        code_pipeline.put_job_success_result(jobId=job_id)\n    except Exception:\n        traceback.print_exc()\n\n        code_pipeline.put_job_failure_result(jobId=job_id, failureDetails={'type': 'JobFailed'})\n"
         },
         "Handler": "index.notify_build_success",
         "Role": {
@@ -555,7 +555,7 @@
         "BuildArtifactsKinesisReplayBuildPipelineNotifyLambdaServiceRole872E82C0"
       ],
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/KinesisReplayBuildPipeline/NotifyLambda/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/KinesisReplayBuildPipeline/NotifyLambda/Resource"
       }
     },
     "BuildArtifactsKinesisReplayBuildPipelineCodePipelineRoleFFB4C59C": {
@@ -575,7 +575,7 @@
         }
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/KinesisReplayBuildPipeline/CodePipeline/Role/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/KinesisReplayBuildPipeline/CodePipeline/Role/Resource"
       }
     },
     "BuildArtifactsKinesisReplayBuildPipelineCodePipelineRoleDefaultPolicy0BC9183A": {
@@ -667,7 +667,7 @@
         ]
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/KinesisReplayBuildPipeline/CodePipeline/Role/DefaultPolicy/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/KinesisReplayBuildPipeline/CodePipeline/Role/DefaultPolicy/Resource"
       }
     },
     "BuildArtifactsKinesisReplayBuildPipelineCodePipelineD24B5A55": {
@@ -814,7 +814,7 @@
         "BuildArtifactsKinesisReplayBuildPipelineCodePipelineRoleFFB4C59C"
       ],
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/KinesisReplayBuildPipeline/CodePipeline/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/KinesisReplayBuildPipeline/CodePipeline/Resource"
       }
     },
     "BuildArtifactsKinesisReplayBuildPipelineCodePipelineSourceSourceActionCodePipelineActionRoleD7F955A7": {
@@ -849,7 +849,7 @@
         }
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/KinesisReplayBuildPipeline/CodePipeline/Source/SourceAction/CodePipelineActionRole/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/KinesisReplayBuildPipeline/CodePipeline/Source/SourceAction/CodePipelineActionRole/Resource"
       }
     },
     "BuildArtifactsKinesisReplayBuildPipelineCodePipelineSourceSourceActionCodePipelineActionRoleDefaultPolicy08095640": {
@@ -928,7 +928,7 @@
         ]
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/KinesisReplayBuildPipeline/CodePipeline/Source/SourceAction/CodePipelineActionRole/DefaultPolicy/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/KinesisReplayBuildPipeline/CodePipeline/Source/SourceAction/CodePipelineActionRole/DefaultPolicy/Resource"
       }
     },
     "BuildArtifactsKinesisReplayBuildPipelineCodePipelineBuildBuildActionCodePipelineActionRole93AFA060": {
@@ -963,7 +963,7 @@
         }
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/KinesisReplayBuildPipeline/CodePipeline/Build/BuildAction/CodePipelineActionRole/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/KinesisReplayBuildPipeline/CodePipeline/Build/BuildAction/CodePipelineActionRole/Resource"
       }
     },
     "BuildArtifactsKinesisReplayBuildPipelineCodePipelineBuildBuildActionCodePipelineActionRoleDefaultPolicy196AAC1A": {
@@ -996,7 +996,7 @@
         ]
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/KinesisReplayBuildPipeline/CodePipeline/Build/BuildAction/CodePipelineActionRole/DefaultPolicy/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/KinesisReplayBuildPipeline/CodePipeline/Build/BuildAction/CodePipelineActionRole/DefaultPolicy/Resource"
       }
     },
     "BuildArtifactsKinesisReplayBuildPipelineCodePipelineCopyCopyActionCodePipelineActionRole75CA52CC": {
@@ -1031,7 +1031,7 @@
         }
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/KinesisReplayBuildPipeline/CodePipeline/Copy/CopyAction/CodePipelineActionRole/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/KinesisReplayBuildPipeline/CodePipeline/Copy/CopyAction/CodePipelineActionRole/Resource"
       }
     },
     "BuildArtifactsKinesisReplayBuildPipelineCodePipelineCopyCopyActionCodePipelineActionRoleDefaultPolicyB138B355": {
@@ -1110,7 +1110,7 @@
         ]
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/KinesisReplayBuildPipeline/CodePipeline/Copy/CopyAction/CodePipelineActionRole/DefaultPolicy/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/KinesisReplayBuildPipeline/CodePipeline/Copy/CopyAction/CodePipelineActionRole/DefaultPolicy/Resource"
       }
     },
     "BuildArtifactsKinesisReplayBuildPipelineCodePipelineCopyInvokeActionCodePipelineActionRoleFD7520EA": {
@@ -1145,7 +1145,7 @@
         }
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/KinesisReplayBuildPipeline/CodePipeline/Copy/InvokeAction/CodePipelineActionRole/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/KinesisReplayBuildPipeline/CodePipeline/Copy/InvokeAction/CodePipelineActionRole/Resource"
       }
     },
     "BuildArtifactsKinesisReplayBuildPipelineCodePipelineCopyInvokeActionCodePipelineActionRoleDefaultPolicy93069DDE": {
@@ -1179,7 +1179,7 @@
         ]
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/KinesisReplayBuildPipeline/CodePipeline/Copy/InvokeAction/CodePipelineActionRole/DefaultPolicy/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/KinesisReplayBuildPipeline/CodePipeline/Copy/InvokeAction/CodePipelineActionRole/DefaultPolicy/Resource"
       }
     },
     "BuildArtifactsFlinkConnectorKinesisPipelineDownloadLambdaServiceRole5CC3FC90": {
@@ -1213,7 +1213,7 @@
         ]
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/FlinkConnectorKinesisPipeline/DownloadLambda/ServiceRole/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/FlinkConnectorKinesisPipeline/DownloadLambda/ServiceRole/Resource"
       }
     },
     "BuildArtifactsFlinkConnectorKinesisPipelineDownloadLambdaServiceRoleDefaultPolicyBAD0D710": {
@@ -1253,14 +1253,14 @@
         ]
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/FlinkConnectorKinesisPipeline/DownloadLambda/ServiceRole/DefaultPolicy/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/FlinkConnectorKinesisPipeline/DownloadLambda/ServiceRole/DefaultPolicy/Resource"
       }
     },
     "BuildArtifactsFlinkConnectorKinesisPipelineDownloadLambda60B14DE3": {
       "Type": "AWS::Lambda::Function",
       "Properties": {
         "Code": {
-          "ZipFile": "import os\nimport json\nimport boto3\nimport traceback\nimport cfnresponse\nimport urllib.request\n\ns3client = boto3.client('s3')\ncode_pipeline = boto3.client('codepipeline')\n\n\ndef download_sources(event, context):\n    url = os.environ['url']\n    bucket = os.environ['bucket']\n    key = os.environ['key']\n\n    try:\n        req = urllib.request.Request(url)\n        response = urllib.request.urlopen(req)\n\n        s3client.put_object(Bucket=bucket, Key=key, Body=response.read())\n\n        cfnresponse.send(event, context, cfnresponse.SUCCESS, {})\n    except Exception:\n        traceback.print_exc()\n\n        cfnresponse.send(event, context, cfnresponse.FAILED, {})\n\n\ndef notify_build_success(event, context):\n    job_id = event['CodePipeline.job']['id']\n\n    url = os.environ['waitHandleUrl']\n    headers = { \"Content-Type\": \"\" }\n    data = { \"Status\": \"SUCCESS\", \"Reason\": \"Compilation Succeeded\", \"UniqueId\": job_id, \"Data\": \"Compilation Succeeded\" }\n\n    try:\n        req = urllib.request.Request(url, headers=headers, data=bytes(json.dumps(data), encoding=\"utf-8\"), method='PUT')\n        response = urllib.request.urlopen(req)\n\n        code_pipeline.put_job_success_result(jobId=job_id)\n    except Exception:\n        traceback.print_exc()\n\n        code_pipeline.put_job_failure_result(jobId=job_id, failureDetails={'type': 'JobFailed'})\n"
+          "ZipFile": "import os\nimport json\nimport boto3\nimport traceback\nimport cfnresponse\nimport urllib.request\n\ns3client = boto3.client('s3')\ncode_pipeline = boto3.client('codepipeline')\n\n\ndef download_sources(event, context):\n    url = os.environ['url']\n    bucket = os.environ['bucket']\n    key = os.environ['key']\n\n    try:\n        if event['RequestType'] != 'Delete':\n            req = urllib.request.Request(url)\n            response = urllib.request.urlopen(req)\n\n            s3client.put_object(Bucket=bucket, Key=key, Body=response.read())\n\n        cfnresponse.send(event, context, cfnresponse.SUCCESS, {})\n    except Exception:\n        traceback.print_exc()\n\n        cfnresponse.send(event, context, cfnresponse.FAILED, {})\n\n\ndef notify_build_success(event, context):\n    job_id = event['CodePipeline.job']['id']\n\n    url = os.environ['waitHandleUrl']\n    headers = { \"Content-Type\": \"\" }\n    data = { \"Status\": \"SUCCESS\", \"Reason\": \"Compilation Succeeded\", \"UniqueId\": job_id, \"Data\": \"Compilation Succeeded\" }\n\n    try:\n        req = urllib.request.Request(url, headers=headers, data=bytes(json.dumps(data), encoding=\"utf-8\"), method='PUT')\n        response = urllib.request.urlopen(req)\n\n        code_pipeline.put_job_success_result(jobId=job_id)\n    except Exception:\n        traceback.print_exc()\n\n        code_pipeline.put_job_failure_result(jobId=job_id, failureDetails={'type': 'JobFailed'})\n"
         },
         "Handler": "index.download_sources",
         "Role": {
@@ -1286,7 +1286,7 @@
         "BuildArtifactsFlinkConnectorKinesisPipelineDownloadLambdaServiceRole5CC3FC90"
       ],
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/FlinkConnectorKinesisPipeline/DownloadLambda/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/FlinkConnectorKinesisPipeline/DownloadLambda/Resource"
       }
     },
     "BuildArtifactsFlinkConnectorKinesisPipelineDownloadLambdaResourceC130AC3D": {
@@ -1302,7 +1302,7 @@
       "UpdateReplacePolicy": "Delete",
       "DeletionPolicy": "Delete",
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/FlinkConnectorKinesisPipeline/DownloadLambdaResource/Default"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/FlinkConnectorKinesisPipeline/DownloadLambdaResource/Default"
       }
     },
     "BuildArtifactsFlinkConnectorKinesisPipelineCodebuildProjectRoleBEC93C15": {
@@ -1322,7 +1322,7 @@
         }
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/FlinkConnectorKinesisPipeline/CodebuildProject/Role/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/FlinkConnectorKinesisPipeline/CodebuildProject/Role/Resource"
       }
     },
     "BuildArtifactsFlinkConnectorKinesisPipelineCodebuildProjectRoleDefaultPolicyF1FF2718": {
@@ -1431,7 +1431,7 @@
         ]
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/FlinkConnectorKinesisPipeline/CodebuildProject/Role/DefaultPolicy/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/FlinkConnectorKinesisPipeline/CodebuildProject/Role/DefaultPolicy/Resource"
       }
     },
     "BuildArtifactsFlinkConnectorKinesisPipelineCodebuildProjectA21177FF": {
@@ -1458,13 +1458,13 @@
         }
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/FlinkConnectorKinesisPipeline/CodebuildProject/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/FlinkConnectorKinesisPipeline/CodebuildProject/Resource"
       }
     },
     "BuildArtifactsFlinkConnectorKinesisPipelineWaitHandle55C9AD51": {
       "Type": "AWS::CloudFormation::WaitConditionHandle",
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/FlinkConnectorKinesisPipeline/WaitHandle"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/FlinkConnectorKinesisPipeline/WaitHandle"
       }
     },
     "BuildArtifactsFlinkConnectorKinesisPipelineWaitConditionC99BD075": {
@@ -1477,7 +1477,7 @@
         "Timeout": "1200"
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/FlinkConnectorKinesisPipeline/WaitCondition"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/FlinkConnectorKinesisPipeline/WaitCondition"
       }
     },
     "BuildArtifactsFlinkConnectorKinesisPipelineNotifyLambdaServiceRole4185CAD0": {
@@ -1511,7 +1511,7 @@
         ]
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/FlinkConnectorKinesisPipeline/NotifyLambda/ServiceRole/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/FlinkConnectorKinesisPipeline/NotifyLambda/ServiceRole/Resource"
       }
     },
     "BuildArtifactsFlinkConnectorKinesisPipelineNotifyLambdaServiceRoleDefaultPolicyBA54BA92": {
@@ -1538,14 +1538,14 @@
         ]
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/FlinkConnectorKinesisPipeline/NotifyLambda/ServiceRole/DefaultPolicy/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/FlinkConnectorKinesisPipeline/NotifyLambda/ServiceRole/DefaultPolicy/Resource"
       }
     },
     "BuildArtifactsFlinkConnectorKinesisPipelineNotifyLambda33A8F6DB": {
       "Type": "AWS::Lambda::Function",
       "Properties": {
         "Code": {
-          "ZipFile": "import os\nimport json\nimport boto3\nimport traceback\nimport cfnresponse\nimport urllib.request\n\ns3client = boto3.client('s3')\ncode_pipeline = boto3.client('codepipeline')\n\n\ndef download_sources(event, context):\n    url = os.environ['url']\n    bucket = os.environ['bucket']\n    key = os.environ['key']\n\n    try:\n        req = urllib.request.Request(url)\n        response = urllib.request.urlopen(req)\n\n        s3client.put_object(Bucket=bucket, Key=key, Body=response.read())\n\n        cfnresponse.send(event, context, cfnresponse.SUCCESS, {})\n    except Exception:\n        traceback.print_exc()\n\n        cfnresponse.send(event, context, cfnresponse.FAILED, {})\n\n\ndef notify_build_success(event, context):\n    job_id = event['CodePipeline.job']['id']\n\n    url = os.environ['waitHandleUrl']\n    headers = { \"Content-Type\": \"\" }\n    data = { \"Status\": \"SUCCESS\", \"Reason\": \"Compilation Succeeded\", \"UniqueId\": job_id, \"Data\": \"Compilation Succeeded\" }\n\n    try:\n        req = urllib.request.Request(url, headers=headers, data=bytes(json.dumps(data), encoding=\"utf-8\"), method='PUT')\n        response = urllib.request.urlopen(req)\n\n        code_pipeline.put_job_success_result(jobId=job_id)\n    except Exception:\n        traceback.print_exc()\n\n        code_pipeline.put_job_failure_result(jobId=job_id, failureDetails={'type': 'JobFailed'})\n"
+          "ZipFile": "import os\nimport json\nimport boto3\nimport traceback\nimport cfnresponse\nimport urllib.request\n\ns3client = boto3.client('s3')\ncode_pipeline = boto3.client('codepipeline')\n\n\ndef download_sources(event, context):\n    url = os.environ['url']\n    bucket = os.environ['bucket']\n    key = os.environ['key']\n\n    try:\n        if event['RequestType'] != 'Delete':\n            req = urllib.request.Request(url)\n            response = urllib.request.urlopen(req)\n\n            s3client.put_object(Bucket=bucket, Key=key, Body=response.read())\n\n        cfnresponse.send(event, context, cfnresponse.SUCCESS, {})\n    except Exception:\n        traceback.print_exc()\n\n        cfnresponse.send(event, context, cfnresponse.FAILED, {})\n\n\ndef notify_build_success(event, context):\n    job_id = event['CodePipeline.job']['id']\n\n    url = os.environ['waitHandleUrl']\n    headers = { \"Content-Type\": \"\" }\n    data = { \"Status\": \"SUCCESS\", \"Reason\": \"Compilation Succeeded\", \"UniqueId\": job_id, \"Data\": \"Compilation Succeeded\" }\n\n    try:\n        req = urllib.request.Request(url, headers=headers, data=bytes(json.dumps(data), encoding=\"utf-8\"), method='PUT')\n        response = urllib.request.urlopen(req)\n\n        code_pipeline.put_job_success_result(jobId=job_id)\n    except Exception:\n        traceback.print_exc()\n\n        code_pipeline.put_job_failure_result(jobId=job_id, failureDetails={'type': 'JobFailed'})\n"
         },
         "Handler": "index.notify_build_success",
         "Role": {
@@ -1569,7 +1569,7 @@
         "BuildArtifactsFlinkConnectorKinesisPipelineNotifyLambdaServiceRole4185CAD0"
       ],
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/FlinkConnectorKinesisPipeline/NotifyLambda/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/FlinkConnectorKinesisPipeline/NotifyLambda/Resource"
       }
     },
     "BuildArtifactsFlinkConnectorKinesisPipelineCodePipelineRole9AB8B6F5": {
@@ -1589,7 +1589,7 @@
         }
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/FlinkConnectorKinesisPipeline/CodePipeline/Role/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/FlinkConnectorKinesisPipeline/CodePipeline/Role/Resource"
       }
     },
     "BuildArtifactsFlinkConnectorKinesisPipelineCodePipelineRoleDefaultPolicy929B89D3": {
@@ -1681,7 +1681,7 @@
         ]
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/FlinkConnectorKinesisPipeline/CodePipeline/Role/DefaultPolicy/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/FlinkConnectorKinesisPipeline/CodePipeline/Role/DefaultPolicy/Resource"
       }
     },
     "BuildArtifactsFlinkConnectorKinesisPipelineCodePipeline8433EA16": {
@@ -1829,7 +1829,7 @@
         "BuildArtifactsFlinkConnectorKinesisPipelineCodePipelineRole9AB8B6F5"
       ],
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/FlinkConnectorKinesisPipeline/CodePipeline/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/FlinkConnectorKinesisPipeline/CodePipeline/Resource"
       }
     },
     "BuildArtifactsFlinkConnectorKinesisPipelineCodePipelineSourceSourceActionCodePipelineActionRoleCD40BD92": {
@@ -1864,7 +1864,7 @@
         }
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/FlinkConnectorKinesisPipeline/CodePipeline/Source/SourceAction/CodePipelineActionRole/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/FlinkConnectorKinesisPipeline/CodePipeline/Source/SourceAction/CodePipelineActionRole/Resource"
       }
     },
     "BuildArtifactsFlinkConnectorKinesisPipelineCodePipelineSourceSourceActionCodePipelineActionRoleDefaultPolicyD52D1481": {
@@ -1943,7 +1943,7 @@
         ]
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/FlinkConnectorKinesisPipeline/CodePipeline/Source/SourceAction/CodePipelineActionRole/DefaultPolicy/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/FlinkConnectorKinesisPipeline/CodePipeline/Source/SourceAction/CodePipelineActionRole/DefaultPolicy/Resource"
       }
     },
     "BuildArtifactsFlinkConnectorKinesisPipelineCodePipelineBuildBuildActionCodePipelineActionRoleAB10E14C": {
@@ -1978,7 +1978,7 @@
         }
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/FlinkConnectorKinesisPipeline/CodePipeline/Build/BuildAction/CodePipelineActionRole/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/FlinkConnectorKinesisPipeline/CodePipeline/Build/BuildAction/CodePipelineActionRole/Resource"
       }
     },
     "BuildArtifactsFlinkConnectorKinesisPipelineCodePipelineBuildBuildActionCodePipelineActionRoleDefaultPolicy0619A476": {
@@ -2011,7 +2011,7 @@
         ]
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/FlinkConnectorKinesisPipeline/CodePipeline/Build/BuildAction/CodePipelineActionRole/DefaultPolicy/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/FlinkConnectorKinesisPipeline/CodePipeline/Build/BuildAction/CodePipelineActionRole/DefaultPolicy/Resource"
       }
     },
     "BuildArtifactsFlinkConnectorKinesisPipelineCodePipelineCopyCopyActionCodePipelineActionRole3F76DAB1": {
@@ -2046,7 +2046,7 @@
         }
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/FlinkConnectorKinesisPipeline/CodePipeline/Copy/CopyAction/CodePipelineActionRole/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/FlinkConnectorKinesisPipeline/CodePipeline/Copy/CopyAction/CodePipelineActionRole/Resource"
       }
     },
     "BuildArtifactsFlinkConnectorKinesisPipelineCodePipelineCopyCopyActionCodePipelineActionRoleDefaultPolicy718A7AF3": {
@@ -2125,7 +2125,7 @@
         ]
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/FlinkConnectorKinesisPipeline/CodePipeline/Copy/CopyAction/CodePipelineActionRole/DefaultPolicy/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/FlinkConnectorKinesisPipeline/CodePipeline/Copy/CopyAction/CodePipelineActionRole/DefaultPolicy/Resource"
       }
     },
     "BuildArtifactsFlinkConnectorKinesisPipelineCodePipelineCopyInvokeActionCodePipelineActionRoleA141A8A5": {
@@ -2160,7 +2160,7 @@
         }
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/FlinkConnectorKinesisPipeline/CodePipeline/Copy/InvokeAction/CodePipelineActionRole/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/FlinkConnectorKinesisPipeline/CodePipeline/Copy/InvokeAction/CodePipelineActionRole/Resource"
       }
     },
     "BuildArtifactsFlinkConnectorKinesisPipelineCodePipelineCopyInvokeActionCodePipelineActionRoleDefaultPolicyB70FECAE": {
@@ -2194,7 +2194,7 @@
         ]
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/FlinkConnectorKinesisPipeline/CodePipeline/Copy/InvokeAction/CodePipelineActionRole/DefaultPolicy/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/FlinkConnectorKinesisPipeline/CodePipeline/Copy/InvokeAction/CodePipelineActionRole/DefaultPolicy/Resource"
       }
     },
     "BuildArtifactsFlinkConsumerDownloadLambdaServiceRole493C8F8C": {
@@ -2228,7 +2228,7 @@
         ]
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/FlinkConsumer/DownloadLambda/ServiceRole/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/FlinkConsumer/DownloadLambda/ServiceRole/Resource"
       }
     },
     "BuildArtifactsFlinkConsumerDownloadLambdaServiceRoleDefaultPolicyBE72E57B": {
@@ -2268,14 +2268,14 @@
         ]
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/FlinkConsumer/DownloadLambda/ServiceRole/DefaultPolicy/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/FlinkConsumer/DownloadLambda/ServiceRole/DefaultPolicy/Resource"
       }
     },
     "BuildArtifactsFlinkConsumerDownloadLambda9FE92F49": {
       "Type": "AWS::Lambda::Function",
       "Properties": {
         "Code": {
-          "ZipFile": "import os\nimport json\nimport boto3\nimport traceback\nimport cfnresponse\nimport urllib.request\n\ns3client = boto3.client('s3')\ncode_pipeline = boto3.client('codepipeline')\n\n\ndef download_sources(event, context):\n    url = os.environ['url']\n    bucket = os.environ['bucket']\n    key = os.environ['key']\n\n    try:\n        req = urllib.request.Request(url)\n        response = urllib.request.urlopen(req)\n\n        s3client.put_object(Bucket=bucket, Key=key, Body=response.read())\n\n        cfnresponse.send(event, context, cfnresponse.SUCCESS, {})\n    except Exception:\n        traceback.print_exc()\n\n        cfnresponse.send(event, context, cfnresponse.FAILED, {})\n\n\ndef notify_build_success(event, context):\n    job_id = event['CodePipeline.job']['id']\n\n    url = os.environ['waitHandleUrl']\n    headers = { \"Content-Type\": \"\" }\n    data = { \"Status\": \"SUCCESS\", \"Reason\": \"Compilation Succeeded\", \"UniqueId\": job_id, \"Data\": \"Compilation Succeeded\" }\n\n    try:\n        req = urllib.request.Request(url, headers=headers, data=bytes(json.dumps(data), encoding=\"utf-8\"), method='PUT')\n        response = urllib.request.urlopen(req)\n\n        code_pipeline.put_job_success_result(jobId=job_id)\n    except Exception:\n        traceback.print_exc()\n\n        code_pipeline.put_job_failure_result(jobId=job_id, failureDetails={'type': 'JobFailed'})\n"
+          "ZipFile": "import os\nimport json\nimport boto3\nimport traceback\nimport cfnresponse\nimport urllib.request\n\ns3client = boto3.client('s3')\ncode_pipeline = boto3.client('codepipeline')\n\n\ndef download_sources(event, context):\n    url = os.environ['url']\n    bucket = os.environ['bucket']\n    key = os.environ['key']\n\n    try:\n        if event['RequestType'] != 'Delete':\n            req = urllib.request.Request(url)\n            response = urllib.request.urlopen(req)\n\n            s3client.put_object(Bucket=bucket, Key=key, Body=response.read())\n\n        cfnresponse.send(event, context, cfnresponse.SUCCESS, {})\n    except Exception:\n        traceback.print_exc()\n\n        cfnresponse.send(event, context, cfnresponse.FAILED, {})\n\n\ndef notify_build_success(event, context):\n    job_id = event['CodePipeline.job']['id']\n\n    url = os.environ['waitHandleUrl']\n    headers = { \"Content-Type\": \"\" }\n    data = { \"Status\": \"SUCCESS\", \"Reason\": \"Compilation Succeeded\", \"UniqueId\": job_id, \"Data\": \"Compilation Succeeded\" }\n\n    try:\n        req = urllib.request.Request(url, headers=headers, data=bytes(json.dumps(data), encoding=\"utf-8\"), method='PUT')\n        response = urllib.request.urlopen(req)\n\n        code_pipeline.put_job_success_result(jobId=job_id)\n    except Exception:\n        traceback.print_exc()\n\n        code_pipeline.put_job_failure_result(jobId=job_id, failureDetails={'type': 'JobFailed'})\n"
         },
         "Handler": "index.download_sources",
         "Role": {
@@ -2301,7 +2301,7 @@
         "BuildArtifactsFlinkConsumerDownloadLambdaServiceRole493C8F8C"
       ],
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/FlinkConsumer/DownloadLambda/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/FlinkConsumer/DownloadLambda/Resource"
       }
     },
     "BuildArtifactsFlinkConsumerDownloadLambdaResource977A6E27": {
@@ -2317,7 +2317,7 @@
       "UpdateReplacePolicy": "Delete",
       "DeletionPolicy": "Delete",
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/FlinkConsumer/DownloadLambdaResource/Default"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/FlinkConsumer/DownloadLambdaResource/Default"
       }
     },
     "BuildArtifactsFlinkConsumerCodebuildProjectRoleEB3F07B4": {
@@ -2337,7 +2337,7 @@
         }
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/FlinkConsumer/CodebuildProject/Role/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/FlinkConsumer/CodebuildProject/Role/Resource"
       }
     },
     "BuildArtifactsFlinkConsumerCodebuildProjectRoleDefaultPolicy640BFED8": {
@@ -2446,7 +2446,7 @@
         ]
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/FlinkConsumer/CodebuildProject/Role/DefaultPolicy/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/FlinkConsumer/CodebuildProject/Role/DefaultPolicy/Resource"
       }
     },
     "BuildArtifactsFlinkConsumerCodebuildProject153C290A": {
@@ -2473,13 +2473,13 @@
         }
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/FlinkConsumer/CodebuildProject/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/FlinkConsumer/CodebuildProject/Resource"
       }
     },
     "BuildArtifactsFlinkConsumerWaitHandle489E40B6": {
       "Type": "AWS::CloudFormation::WaitConditionHandle",
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/FlinkConsumer/WaitHandle"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/FlinkConsumer/WaitHandle"
       }
     },
     "BuildArtifactsFlinkConsumerWaitCondition4456F317": {
@@ -2492,7 +2492,7 @@
         "Timeout": "1200"
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/FlinkConsumer/WaitCondition"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/FlinkConsumer/WaitCondition"
       }
     },
     "BuildArtifactsFlinkConsumerNotifyLambdaServiceRoleE22572DE": {
@@ -2526,7 +2526,7 @@
         ]
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/FlinkConsumer/NotifyLambda/ServiceRole/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/FlinkConsumer/NotifyLambda/ServiceRole/Resource"
       }
     },
     "BuildArtifactsFlinkConsumerNotifyLambdaServiceRoleDefaultPolicyA1F66937": {
@@ -2553,14 +2553,14 @@
         ]
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/FlinkConsumer/NotifyLambda/ServiceRole/DefaultPolicy/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/FlinkConsumer/NotifyLambda/ServiceRole/DefaultPolicy/Resource"
       }
     },
     "BuildArtifactsFlinkConsumerNotifyLambda7C596CB5": {
       "Type": "AWS::Lambda::Function",
       "Properties": {
         "Code": {
-          "ZipFile": "import os\nimport json\nimport boto3\nimport traceback\nimport cfnresponse\nimport urllib.request\n\ns3client = boto3.client('s3')\ncode_pipeline = boto3.client('codepipeline')\n\n\ndef download_sources(event, context):\n    url = os.environ['url']\n    bucket = os.environ['bucket']\n    key = os.environ['key']\n\n    try:\n        req = urllib.request.Request(url)\n        response = urllib.request.urlopen(req)\n\n        s3client.put_object(Bucket=bucket, Key=key, Body=response.read())\n\n        cfnresponse.send(event, context, cfnresponse.SUCCESS, {})\n    except Exception:\n        traceback.print_exc()\n\n        cfnresponse.send(event, context, cfnresponse.FAILED, {})\n\n\ndef notify_build_success(event, context):\n    job_id = event['CodePipeline.job']['id']\n\n    url = os.environ['waitHandleUrl']\n    headers = { \"Content-Type\": \"\" }\n    data = { \"Status\": \"SUCCESS\", \"Reason\": \"Compilation Succeeded\", \"UniqueId\": job_id, \"Data\": \"Compilation Succeeded\" }\n\n    try:\n        req = urllib.request.Request(url, headers=headers, data=bytes(json.dumps(data), encoding=\"utf-8\"), method='PUT')\n        response = urllib.request.urlopen(req)\n\n        code_pipeline.put_job_success_result(jobId=job_id)\n    except Exception:\n        traceback.print_exc()\n\n        code_pipeline.put_job_failure_result(jobId=job_id, failureDetails={'type': 'JobFailed'})\n"
+          "ZipFile": "import os\nimport json\nimport boto3\nimport traceback\nimport cfnresponse\nimport urllib.request\n\ns3client = boto3.client('s3')\ncode_pipeline = boto3.client('codepipeline')\n\n\ndef download_sources(event, context):\n    url = os.environ['url']\n    bucket = os.environ['bucket']\n    key = os.environ['key']\n\n    try:\n        if event['RequestType'] != 'Delete':\n            req = urllib.request.Request(url)\n            response = urllib.request.urlopen(req)\n\n            s3client.put_object(Bucket=bucket, Key=key, Body=response.read())\n\n        cfnresponse.send(event, context, cfnresponse.SUCCESS, {})\n    except Exception:\n        traceback.print_exc()\n\n        cfnresponse.send(event, context, cfnresponse.FAILED, {})\n\n\ndef notify_build_success(event, context):\n    job_id = event['CodePipeline.job']['id']\n\n    url = os.environ['waitHandleUrl']\n    headers = { \"Content-Type\": \"\" }\n    data = { \"Status\": \"SUCCESS\", \"Reason\": \"Compilation Succeeded\", \"UniqueId\": job_id, \"Data\": \"Compilation Succeeded\" }\n\n    try:\n        req = urllib.request.Request(url, headers=headers, data=bytes(json.dumps(data), encoding=\"utf-8\"), method='PUT')\n        response = urllib.request.urlopen(req)\n\n        code_pipeline.put_job_success_result(jobId=job_id)\n    except Exception:\n        traceback.print_exc()\n\n        code_pipeline.put_job_failure_result(jobId=job_id, failureDetails={'type': 'JobFailed'})\n"
         },
         "Handler": "index.notify_build_success",
         "Role": {
@@ -2584,7 +2584,7 @@
         "BuildArtifactsFlinkConsumerNotifyLambdaServiceRoleE22572DE"
       ],
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/FlinkConsumer/NotifyLambda/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/FlinkConsumer/NotifyLambda/Resource"
       }
     },
     "BuildArtifactsFlinkConsumerCodePipelineRole922EE623": {
@@ -2604,7 +2604,7 @@
         }
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/FlinkConsumer/CodePipeline/Role/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/FlinkConsumer/CodePipeline/Role/Resource"
       }
     },
     "BuildArtifactsFlinkConsumerCodePipelineRoleDefaultPolicy1D27AC5C": {
@@ -2706,7 +2706,7 @@
         ]
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/FlinkConsumer/CodePipeline/Role/DefaultPolicy/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/FlinkConsumer/CodePipeline/Role/DefaultPolicy/Resource"
       }
     },
     "BuildArtifactsFlinkConsumerCodePipelineEAF23675": {
@@ -2884,7 +2884,7 @@
         "BuildArtifactsFlinkConsumerCodePipelineRole922EE623"
       ],
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/FlinkConsumer/CodePipeline/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/FlinkConsumer/CodePipeline/Resource"
       }
     },
     "BuildArtifactsFlinkConsumerCodePipelineSourceSourceActionCodePipelineActionRole227D512E": {
@@ -2919,7 +2919,7 @@
         }
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/FlinkConsumer/CodePipeline/Source/SourceAction/CodePipelineActionRole/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/FlinkConsumer/CodePipeline/Source/SourceAction/CodePipelineActionRole/Resource"
       }
     },
     "BuildArtifactsFlinkConsumerCodePipelineSourceSourceActionCodePipelineActionRoleDefaultPolicyE6531A3C": {
@@ -2998,7 +2998,7 @@
         ]
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/FlinkConsumer/CodePipeline/Source/SourceAction/CodePipelineActionRole/DefaultPolicy/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/FlinkConsumer/CodePipeline/Source/SourceAction/CodePipelineActionRole/DefaultPolicy/Resource"
       }
     },
     "BuildArtifactsFlinkConsumerCodePipelineSourceFlinkKinesisConnectorSourceActionCodePipelineActionRole0F35F5DB": {
@@ -3033,7 +3033,7 @@
         }
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/FlinkConsumer/CodePipeline/Source/FlinkKinesisConnectorSourceAction/CodePipelineActionRole/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/FlinkConsumer/CodePipeline/Source/FlinkKinesisConnectorSourceAction/CodePipelineActionRole/Resource"
       }
     },
     "BuildArtifactsFlinkConsumerCodePipelineSourceFlinkKinesisConnectorSourceActionCodePipelineActionRoleDefaultPolicyC743210D": {
@@ -3112,7 +3112,7 @@
         ]
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/FlinkConsumer/CodePipeline/Source/FlinkKinesisConnectorSourceAction/CodePipelineActionRole/DefaultPolicy/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/FlinkConsumer/CodePipeline/Source/FlinkKinesisConnectorSourceAction/CodePipelineActionRole/DefaultPolicy/Resource"
       }
     },
     "BuildArtifactsFlinkConsumerCodePipelineBuildBuildActionCodePipelineActionRoleEB440E9D": {
@@ -3147,7 +3147,7 @@
         }
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/FlinkConsumer/CodePipeline/Build/BuildAction/CodePipelineActionRole/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/FlinkConsumer/CodePipeline/Build/BuildAction/CodePipelineActionRole/Resource"
       }
     },
     "BuildArtifactsFlinkConsumerCodePipelineBuildBuildActionCodePipelineActionRoleDefaultPolicyF3F2FD4C": {
@@ -3180,7 +3180,7 @@
         ]
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/FlinkConsumer/CodePipeline/Build/BuildAction/CodePipelineActionRole/DefaultPolicy/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/FlinkConsumer/CodePipeline/Build/BuildAction/CodePipelineActionRole/DefaultPolicy/Resource"
       }
     },
     "BuildArtifactsFlinkConsumerCodePipelineCopyCopyActionCodePipelineActionRole2B544E9F": {
@@ -3215,7 +3215,7 @@
         }
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/FlinkConsumer/CodePipeline/Copy/CopyAction/CodePipelineActionRole/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/FlinkConsumer/CodePipeline/Copy/CopyAction/CodePipelineActionRole/Resource"
       }
     },
     "BuildArtifactsFlinkConsumerCodePipelineCopyCopyActionCodePipelineActionRoleDefaultPolicy7F0CBF80": {
@@ -3294,7 +3294,7 @@
         ]
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/FlinkConsumer/CodePipeline/Copy/CopyAction/CodePipelineActionRole/DefaultPolicy/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/FlinkConsumer/CodePipeline/Copy/CopyAction/CodePipelineActionRole/DefaultPolicy/Resource"
       }
     },
     "BuildArtifactsFlinkConsumerCodePipelineCopyInvokeActionCodePipelineActionRoleA8BF4DF2": {
@@ -3329,7 +3329,7 @@
         }
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/FlinkConsumer/CodePipeline/Copy/InvokeAction/CodePipelineActionRole/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/FlinkConsumer/CodePipeline/Copy/InvokeAction/CodePipelineActionRole/Resource"
       }
     },
     "BuildArtifactsFlinkConsumerCodePipelineCopyInvokeActionCodePipelineActionRoleDefaultPolicy6599BED4": {
@@ -3363,7 +3363,7 @@
         ]
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/BuildArtifacts/FlinkConsumer/CodePipeline/Copy/InvokeAction/CodePipelineActionRole/DefaultPolicy/Resource"
+        "aws:cdk:path": "StreamingEtl/BuildArtifacts/FlinkConsumer/CodePipeline/Copy/InvokeAction/CodePipelineActionRole/DefaultPolicy/Resource"
       }
     },
     "InputStreamCFB159EA": {
@@ -3373,7 +3373,7 @@
         "RetentionPeriodHours": 24
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/InputStream/Resource"
+        "aws:cdk:path": "StreamingEtl/InputStream/Resource"
       }
     },
     "KdaRoleB7DD543E": {
@@ -3393,7 +3393,7 @@
         }
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/KdaRole/Resource"
+        "aws:cdk:path": "StreamingEtl/KdaRole/Resource"
       }
     },
     "KdaRoleDefaultPolicy88A47211": {
@@ -3435,7 +3435,7 @@
         ]
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/KdaRole/DefaultPolicy/Resource"
+        "aws:cdk:path": "StreamingEtl/KdaRole/DefaultPolicy/Resource"
       }
     },
     "KdaLogGroup88624CAF": {
@@ -3446,7 +3446,7 @@
       "UpdateReplacePolicy": "Retain",
       "DeletionPolicy": "Retain",
       "Metadata": {
-        "aws:cdk:path": "CdkStack/KdaLogGroup/Resource"
+        "aws:cdk:path": "StreamingEtl/KdaLogGroup/Resource"
       }
     },
     "KdaLogStream7DC95165": {
@@ -3459,7 +3459,7 @@
       "UpdateReplacePolicy": "Retain",
       "DeletionPolicy": "Retain",
       "Metadata": {
-        "aws:cdk:path": "CdkStack/KdaLogStream/Resource"
+        "aws:cdk:path": "StreamingEtl/KdaLogStream/Resource"
       }
     },
     "KdaApplication": {
@@ -3543,7 +3543,7 @@
         "BuildArtifactsFlinkConsumerWaitCondition4456F317"
       ],
       "Metadata": {
-        "aws:cdk:path": "CdkStack/KdaApplication"
+        "aws:cdk:path": "StreamingEtl/KdaApplication"
       }
     },
     "KdsFlinkProducerLogging": {
@@ -3583,7 +3583,7 @@
         }
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/KdsFlinkProducerLogging"
+        "aws:cdk:path": "StreamingEtl/KdsFlinkProducerLogging"
       }
     },
     "VPCB9E5F0B4": {
@@ -3596,12 +3596,12 @@
         "Tags": [
           {
             "Key": "Name",
-            "Value": "CdkStack/VPC"
+            "Value": "StreamingEtl/VPC"
           }
         ]
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/VPC/Resource"
+        "aws:cdk:path": "StreamingEtl/VPC/Resource"
       }
     },
     "VPCpublicSubnet1Subnet325F50B2": {
@@ -3623,7 +3623,7 @@
         "Tags": [
           {
             "Key": "Name",
-            "Value": "CdkStack/VPC/publicSubnet1"
+            "Value": "StreamingEtl/VPC/publicSubnet1"
           },
           {
             "Key": "aws-cdk:subnet-name",
@@ -3636,7 +3636,7 @@
         ]
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/VPC/publicSubnet1/Subnet"
+        "aws:cdk:path": "StreamingEtl/VPC/publicSubnet1/Subnet"
       }
     },
     "VPCpublicSubnet1RouteTableF591E248": {
@@ -3648,12 +3648,12 @@
         "Tags": [
           {
             "Key": "Name",
-            "Value": "CdkStack/VPC/publicSubnet1"
+            "Value": "StreamingEtl/VPC/publicSubnet1"
           }
         ]
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/VPC/publicSubnet1/RouteTable"
+        "aws:cdk:path": "StreamingEtl/VPC/publicSubnet1/RouteTable"
       }
     },
     "VPCpublicSubnet1RouteTableAssociationBFFA43B7": {
@@ -3667,7 +3667,7 @@
         }
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/VPC/publicSubnet1/RouteTableAssociation"
+        "aws:cdk:path": "StreamingEtl/VPC/publicSubnet1/RouteTableAssociation"
       }
     },
     "VPCpublicSubnet1DefaultRoute19059ECD": {
@@ -3685,7 +3685,7 @@
         "VPCVPCGW99B986DC"
       ],
       "Metadata": {
-        "aws:cdk:path": "CdkStack/VPC/publicSubnet1/DefaultRoute"
+        "aws:cdk:path": "StreamingEtl/VPC/publicSubnet1/DefaultRoute"
       }
     },
     "VPCpublicSubnet2Subnet2B2DFF71": {
@@ -3707,7 +3707,7 @@
         "Tags": [
           {
             "Key": "Name",
-            "Value": "CdkStack/VPC/publicSubnet2"
+            "Value": "StreamingEtl/VPC/publicSubnet2"
           },
           {
             "Key": "aws-cdk:subnet-name",
@@ -3720,7 +3720,7 @@
         ]
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/VPC/publicSubnet2/Subnet"
+        "aws:cdk:path": "StreamingEtl/VPC/publicSubnet2/Subnet"
       }
     },
     "VPCpublicSubnet2RouteTable55DAB1BB": {
@@ -3732,12 +3732,12 @@
         "Tags": [
           {
             "Key": "Name",
-            "Value": "CdkStack/VPC/publicSubnet2"
+            "Value": "StreamingEtl/VPC/publicSubnet2"
           }
         ]
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/VPC/publicSubnet2/RouteTable"
+        "aws:cdk:path": "StreamingEtl/VPC/publicSubnet2/RouteTable"
       }
     },
     "VPCpublicSubnet2RouteTableAssociation0849466B": {
@@ -3751,7 +3751,7 @@
         }
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/VPC/publicSubnet2/RouteTableAssociation"
+        "aws:cdk:path": "StreamingEtl/VPC/publicSubnet2/RouteTableAssociation"
       }
     },
     "VPCpublicSubnet2DefaultRoute9ED4D6BC": {
@@ -3769,7 +3769,7 @@
         "VPCVPCGW99B986DC"
       ],
       "Metadata": {
-        "aws:cdk:path": "CdkStack/VPC/publicSubnet2/DefaultRoute"
+        "aws:cdk:path": "StreamingEtl/VPC/publicSubnet2/DefaultRoute"
       }
     },
     "VPCIGWB7E252D3": {
@@ -3778,12 +3778,12 @@
         "Tags": [
           {
             "Key": "Name",
-            "Value": "CdkStack/VPC"
+            "Value": "StreamingEtl/VPC"
           }
         ]
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/VPC/IGW"
+        "aws:cdk:path": "StreamingEtl/VPC/IGW"
       }
     },
     "VPCVPCGW99B986DC": {
@@ -3797,13 +3797,13 @@
         }
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/VPC/VPCGW"
+        "aws:cdk:path": "StreamingEtl/VPC/VPCGW"
       }
     },
     "SecurityGroupDD263621": {
       "Type": "AWS::EC2::SecurityGroup",
       "Properties": {
-        "GroupDescription": "CdkStack/SecurityGroup",
+        "GroupDescription": "StreamingEtl/SecurityGroup",
         "SecurityGroupEgress": [
           {
             "CidrIp": "0.0.0.0/0",
@@ -3825,14 +3825,14 @@
         }
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/SecurityGroup/Resource"
+        "aws:cdk:path": "StreamingEtl/SecurityGroup/Resource"
       }
     },
-    "SecurityGroupfromCdkStackSecurityGroup0D809E9AALLTRAFFICCB535B8B": {
+    "SecurityGroupfromStreamingEtlSecurityGroup734C9F5FALLTRAFFICC6024B78": {
       "Type": "AWS::EC2::SecurityGroupIngress",
       "Properties": {
         "IpProtocol": "-1",
-        "Description": "from CdkStackSecurityGroup0D809E9A:ALL TRAFFIC",
+        "Description": "from StreamingEtlSecurityGroup734C9F5F:ALL TRAFFIC",
         "GroupId": {
           "Fn::GetAtt": [
             "SecurityGroupDD263621",
@@ -3847,7 +3847,7 @@
         }
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/SecurityGroup/from CdkStackSecurityGroup0D809E9A:ALL TRAFFIC"
+        "aws:cdk:path": "StreamingEtl/SecurityGroup/from StreamingEtlSecurityGroup734C9F5F:ALL TRAFFIC"
       }
     },
     "ReplayRoleD94AFF0C": {
@@ -3877,7 +3877,7 @@
         }
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/ReplayRole/Resource"
+        "aws:cdk:path": "StreamingEtl/ReplayRole/Resource"
       }
     },
     "ReplayRoleDefaultPolicy912FC29E": {
@@ -3912,7 +3912,7 @@
         ]
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/ReplayRole/DefaultPolicy/Resource"
+        "aws:cdk:path": "StreamingEtl/ReplayRole/DefaultPolicy/Resource"
       }
     },
     "ProducerInstanceInstanceProfile4ABBC2A1": {
@@ -3928,7 +3928,7 @@
         "BuildArtifactsKinesisReplayBuildPipelineWaitCondition802E8F7A"
       ],
       "Metadata": {
-        "aws:cdk:path": "CdkStack/ProducerInstance/InstanceProfile"
+        "aws:cdk:path": "StreamingEtl/ProducerInstance/InstanceProfile"
       }
     },
     "ProducerInstance1BB510A3": {
@@ -3948,7 +3948,7 @@
         "ImageId": {
           "Ref": "SsmParameterValueawsserviceamiamazonlinuxlatestamzn2amihvmx8664gp2C96584B6F00A464EAD1953AFF4B05118Parameter"
         },
-        "InstanceType": "c5n.xlarge",
+        "InstanceType": "c5n.large",
         "KeyName": {
           "Ref": "SshKeyName"
         },
@@ -3966,7 +3966,17 @@
         "Tags": [
           {
             "Key": "Name",
-            "Value": "CdkStack/ProducerInstance"
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Ref": "AWS::StackName"
+                  },
+                  "/ProducerInstance"
+                ]
+              ]
+            }
           }
         ],
         "UserData": {
@@ -4010,7 +4020,7 @@
         }
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/ProducerInstance/Resource"
+        "aws:cdk:path": "StreamingEtl/ProducerInstance/Resource"
       }
     },
     "Dashboard9E4231ED": {
@@ -4044,7 +4054,7 @@
               {
                 "Ref": "InputStreamCFB159EA"
               },
-              "\",{\"period\":60,\"stat\":\"Sum\",\"yAxis\":\"right\"}]],\"yAxis\":{}}},{\"type\":\"metric\",\"width\":24,\"height\":6,\"x\":0,\"y\":12,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Apache Flink consumer lag\",\"region\":\"",
+              "\",{\"period\":60,\"stat\":\"Sum\",\"yAxis\":\"right\"}]],\"yAxis\":{}}},{\"type\":\"metric\",\"width\":24,\"height\":6,\"x\":0,\"y\":12,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Flink consumer lag\",\"region\":\"",
               {
                 "Ref": "AWS::Region"
               },
@@ -4087,7 +4097,7 @@
         }
       },
       "Metadata": {
-        "aws:cdk:path": "CdkStack/Dashboard/Resource"
+        "aws:cdk:path": "StreamingEtl/Dashboard/Resource"
       }
     }
   },

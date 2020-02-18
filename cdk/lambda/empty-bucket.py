@@ -12,7 +12,7 @@ def empty_bucket(event, context):
             print("empty bucket: " + bucket_name)
             
             bucket = boto3.resource('s3').Bucket(bucket_name)
-            print(json.dumps(bucket.object_versions.delete()))
+            bucket.object_versions.delete()
 
         cfnresponse.send(event, context, cfnresponse.SUCCESS, {})
     except Exception:

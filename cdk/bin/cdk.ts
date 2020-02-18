@@ -4,4 +4,4 @@ import * as cdk from '@aws-cdk/core';
 import { StreamingEtl } from '../lib/streaming-etl';
 
 const app = new cdk.App();
-new StreamingEtl(app, 'CdkStack');
+new StreamingEtl(app, 'StreamingEtl');

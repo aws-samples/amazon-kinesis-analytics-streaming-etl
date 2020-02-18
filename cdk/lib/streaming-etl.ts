@@ -189,10 +189,11 @@ export class StreamingEtl extends cdk.Stack {
         subnets: vpc.publicSubnets
       },
       keyName: sshKeyName,
-      instanceType: InstanceType.of(InstanceClass.C5N, InstanceSize.XLARGE),
+      instanceType: InstanceType.of(InstanceClass.C5N, InstanceSize.LARGE),
       machineImage: new AmazonLinuxImage({
         generation: AmazonLinuxGeneration.AMAZON_LINUX_2
       }),
+      instanceName: `${cdk.Aws.STACK_NAME}/ProducerInstance`,
       securityGroup: sg,
       userData: userData,
       role: role,
@@ -309,7 +310,7 @@ export class StreamingEtl extends cdk.Stack {
       new cloudwatch.GraphWidget({
         left: [millisBehindLatest],
         width: 24,
-        title: 'Apache Flink consumer lag',
+        title: 'Flink consumer lag',
         leftYAxis: {
           label: 'milliseconds',
           showUnits: false

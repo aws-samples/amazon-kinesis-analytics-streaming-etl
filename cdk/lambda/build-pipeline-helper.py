@@ -15,10 +15,11 @@ def download_sources(event, context):
     key = os.environ['key']
 
     try:
-        req = urllib.request.Request(url)
-        response = urllib.request.urlopen(req)
+        if event['RequestType'] != 'Delete':
+            req = urllib.request.Request(url)
+            response = urllib.request.urlopen(req)
 
-        s3client.put_object(Bucket=bucket, Key=key, Body=response.read())
+            s3client.put_object(Bucket=bucket, Key=key, Body=response.read())
 
         cfnresponse.send(event, context, cfnresponse.SUCCESS, {})
     except Exception:
