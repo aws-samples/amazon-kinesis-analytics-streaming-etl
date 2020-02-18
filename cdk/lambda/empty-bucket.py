@@ -1,4 +1,5 @@
 import os
+import json
 import boto3
 import traceback
 import cfnresponse
@@ -10,9 +11,8 @@ def empty_bucket(event, context):
         if event['RequestType'] == 'Delete':
             print("empty bucket: " + bucket_name)
             
-            s3 = boto3.resource('s3')
-            bucket = s3.Bucket(bucket_name)
-            resp = bucket.object_versions.delete()
+            bucket = boto3.resource('s3').Bucket(bucket_name)
+            print(json.dumps(bucket.object_versions.delete()))
 
         cfnresponse.send(event, context, cfnresponse.SUCCESS, {})
     except Exception:

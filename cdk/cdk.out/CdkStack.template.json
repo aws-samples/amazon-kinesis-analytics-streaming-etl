@@ -125,7 +125,7 @@
       "Type": "AWS::Lambda::Function",
       "Properties": {
         "Code": {
-          "ZipFile": "import os\nimport boto3\nimport traceback\nimport cfnresponse\n\ndef empty_bucket(event, context):\n    bucket_name = os.environ['bucket_name']\n\n    try:\n        if event['RequestType'] == 'Delete':\n            print(\"empty bucket: \" + bucket_name)\n            \n            s3 = boto3.resource('s3')\n            bucket = s3.Bucket(bucket_name)\n            resp = bucket.object_versions.delete()\n\n        cfnresponse.send(event, context, cfnresponse.SUCCESS, {})\n    except Exception:\n        traceback.print_exc()\n\n        cfnresponse.send(event, context, cfnresponse.FAILED, {})"
+          "ZipFile": "import os\nimport json\nimport boto3\nimport traceback\nimport cfnresponse\n\ndef empty_bucket(event, context):\n    bucket_name = os.environ['bucket_name']\n\n    try:\n        if event['RequestType'] == 'Delete':\n            print(\"empty bucket: \" + bucket_name)\n            \n            bucket = boto3.resource('s3').Bucket(bucket_name)\n            print(json.dumps(bucket.object_versions.delete()))\n\n        cfnresponse.send(event, context, cfnresponse.SUCCESS, {})\n    except Exception:\n        traceback.print_exc()\n\n        cfnresponse.send(event, context, cfnresponse.FAILED, {})"
         },
         "Handler": "index.empty_bucket",
         "Role": {
@@ -4020,7 +4020,7 @@
           "Fn::Join": [
             "",
             [
-              "{\"widgets\":[{\"type\":\"metric\",\"width\":24,\"height\":6,\"x\":0,\"y\":0,\"properties\":{\"view\":\"timeSeries\",\"region\":\"",
+              "{\"widgets\":[{\"type\":\"metric\",\"width\":24,\"height\":6,\"x\":0,\"y\":0,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Kinesis data stream (incoming)\",\"region\":\"",
               {
                 "Ref": "AWS::Region"
               },
@@ -4032,7 +4032,7 @@
               {
                 "Ref": "InputStreamCFB159EA"
               },
-              "\",{\"period\":60,\"stat\":\"Sum\",\"yAxis\":\"right\"}]],\"yAxis\":{}}},{\"type\":\"metric\",\"width\":24,\"height\":6,\"x\":0,\"y\":6,\"properties\":{\"view\":\"timeSeries\",\"region\":\"",
+              "\",{\"period\":60,\"stat\":\"Sum\",\"yAxis\":\"right\"}]],\"yAxis\":{}}},{\"type\":\"metric\",\"width\":24,\"height\":6,\"x\":0,\"y\":6,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Kinesis data stream (outgoing)\",\"region\":\"",
               {
                 "Ref": "AWS::Region"
               },
@@ -4044,7 +4044,7 @@
               {
                 "Ref": "InputStreamCFB159EA"
               },
-              "\",{\"period\":60,\"stat\":\"Sum\",\"yAxis\":\"right\"}]],\"yAxis\":{}}},{\"type\":\"metric\",\"width\":24,\"height\":6,\"x\":0,\"y\":12,\"properties\":{\"view\":\"timeSeries\",\"region\":\"",
+              "\",{\"period\":60,\"stat\":\"Sum\",\"yAxis\":\"right\"}]],\"yAxis\":{}}},{\"type\":\"metric\",\"width\":24,\"height\":6,\"x\":0,\"y\":12,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Apache Flink consumer lag\",\"region\":\"",
               {
                 "Ref": "AWS::Region"
               },
@@ -4066,7 +4066,7 @@
                   }
                 ]
               },
-              "\",{\"period\":60,\"stat\":\"Maximum\"}]],\"yAxis\":{}}},{\"type\":\"metric\",\"width\":24,\"height\":6,\"x\":0,\"y\":18,\"properties\":{\"view\":\"timeSeries\",\"region\":\"",
+              "\",{\"period\":60,\"stat\":\"Maximum\"}]],\"yAxis\":{\"left\":{\"label\":\"milliseconds\",\"showUnits\":false}}}},{\"type\":\"metric\",\"width\":24,\"height\":6,\"x\":0,\"y\":18,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Amazon S3 (incoming)\",\"region\":\"",
               {
                 "Ref": "AWS::Region"
               },

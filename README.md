@@ -28,7 +28,7 @@ The Java application has already been downloaded to an Amazon Elastic Compute Cl
 ```
 $ ssh ec2-user@«Replay instance DNS name»
 
-$ java -jar amazon-kinesis-replay-1.0-SNAPSHOT.jar -noWatermark -objectPrefix artifacts/kinesis-analytics-taxi-consumer/taxi-trips-partitioned.json.lz4/dropoff_year=2018/ -streamName «Kinesis stream name» -speedup 3600
+$ java -jar amazon-kinesis-replay-*.jar -noWatermark -objectPrefix artifacts/kinesis-analytics-taxi-consumer/taxi-trips-partitioned.json.lz4/dropoff_year=2018/ -streamName «Kinesis stream name» -speedup 3600
 ```
 
 You can obtain these commands, including their correct parameters, from the output section of the AWS CloudFormation template that you executed previously.

@@ -251,6 +251,7 @@ export class StreamingEtl extends cdk.Stack {
       statistic: 'sum'
     });
 
+
     const millisBehindLatest = new Metric({
       namespace: 'AWS/KinesisAnalytics',
       metricName: 'millisBehindLatest',
@@ -260,7 +261,7 @@ export class StreamingEtl extends cdk.Stack {
         Flow: 'Input'
       },
       period: Duration.minutes(1),
-      statistic: 'max'
+      statistic: 'max',
     });
 
     const bytesUploaded = new Metric({
@@ -290,7 +291,8 @@ export class StreamingEtl extends cdk.Stack {
       new cloudwatch.GraphWidget({
         left: [incomingRecords],
         right: [incomingBytes],
-        width: 24
+        width: 24,
+        title: 'Kinesis data stream (incoming)'
       })
     );
 
@@ -298,14 +300,20 @@ export class StreamingEtl extends cdk.Stack {
       new cloudwatch.GraphWidget({
         left: [outgoingRecords],
         right: [outgoingBytes],
-        width: 24
+        width: 24,
+        title: 'Kinesis data stream (outgoing)'
       })
     );
 
     dashboard.addWidgets(
       new cloudwatch.GraphWidget({
         left: [millisBehindLatest],
-        width: 24
+        width: 24,
+        title: 'Apache Flink consumer lag',
+        leftYAxis: {
+          label: 'milliseconds',
+          showUnits: false
+        }
       })
     );
 
@@ -313,7 +321,8 @@ export class StreamingEtl extends cdk.Stack {
       new cloudwatch.GraphWidget({
         left: [putRequests],
         right: [bytesUploaded],
-        width: 24
+        width: 24,
+        title: 'Amazon S3 (incoming)'
       })
     );
 
