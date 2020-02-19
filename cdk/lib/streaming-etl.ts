@@ -5,7 +5,7 @@ import iam = require('@aws-cdk/aws-iam');
 import logs = require('@aws-cdk/aws-logs');
 import kds = require('@aws-cdk/aws-kinesis');
 import kda = require('@aws-cdk/aws-kinesisanalytics');
-import cloudwatch = require('@aws-cdk/aws-cloudwatch')
+import cloudwatch = require('@aws-cdk/aws-cloudwatch');
 
 import { Metric } from '@aws-cdk/aws-cloudwatch';
 import { RemovalPolicy, Duration } from '@aws-cdk/core';
@@ -101,13 +101,13 @@ export class StreamingEtl extends cdk.Stack {
             },
             parallelismConfiguration: {
               autoScalingEnabled: false,
-              parallelism: 3,
+              parallelism: 2,
               parallelismPerKpu: 1,
               configurationType: 'CUSTOM'
             },
             checkpointConfiguration: {
               configurationType: "CUSTOM",
-              checkpointInterval: 300_000,
+              checkpointInterval: 60_000,
               minPauseBetweenCheckpoints: 60_000,
               checkpointingEnabled: true
             }
@@ -251,7 +251,6 @@ export class StreamingEtl extends cdk.Stack {
       period: Duration.minutes(1),
       statistic: 'sum'
     });
-
 
     const millisBehindLatest = new Metric({
       namespace: 'AWS/KinesisAnalytics',

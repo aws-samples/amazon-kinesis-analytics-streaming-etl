@@ -22,6 +22,7 @@ export class EmptyBucketOnDelete extends cdk.Construct {
             timeout: Duration.minutes(15),
             code: lambda.Code.inline(lambdaSource),
             handler: 'index.empty_bucket',
+            memorySize: 512,
             environment: {
                 bucket_name: props.bucket.bucketName,
             }

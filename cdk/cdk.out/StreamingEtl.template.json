@@ -142,6 +142,7 @@
             }
           }
         },
+        "MemorySize": 512,
         "Timeout": 900
       },
       "DependsOn": [
@@ -3517,7 +3518,7 @@
           },
           "FlinkApplicationConfiguration": {
             "CheckpointConfiguration": {
-              "CheckpointInterval": 300000,
+              "CheckpointInterval": 60000,
               "CheckpointingEnabled": true,
               "ConfigurationType": "CUSTOM",
               "MinPauseBetweenCheckpoints": 60000
@@ -3530,7 +3531,7 @@
             "ParallelismConfiguration": {
               "AutoScalingEnabled": false,
               "ConfigurationType": "CUSTOM",
-              "Parallelism": 3,
+              "Parallelism": 2,
               "ParallelismPerKPU": 1
             }
           }
