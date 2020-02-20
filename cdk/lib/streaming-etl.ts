@@ -66,67 +66,82 @@ export class StreamingEtl extends cdk.Stack {
       assumedBy: new iam.ServicePrincipal('kinesisanalytics.amazonaws.com'),
     });
 
+    bucket.grantReadWrite(kdaRole);
+    stream.grantRead(kdaRole);
+
     kdaRole.addToPolicy(new iam.PolicyStatement({
-      actions: [
-        'cloudwatch:PutMetricData',
-        'logs:PutLogEvents', 'logs:DescribeLogGroups', 'logs:DescribeLogStreams',
-        'kinesis:DescribeStream', 'kinesis:ListShards', 'kinesis:GetShardIterator', 'kinesis:GetRecords',
-        'kinesis:PutRecord', 'kinesis:PutRecords',
-        's3:GetObject', 's3:List*', 's3:PutObject', 's3:AbortMultipartUpload',
-        'es:ESHttpPut', 'es:ESHttpPost', 'es:ESHttpHead',
-      ],
-      resources: ['*']
+      actions: [ 'kinesis:ListShards' ],
+      resources: [ stream.streamArn ]
+    }))
+
+    kdaRole.addToPolicy(new iam.PolicyStatement({
+      actions: [ 'cloudwatch:PutMetricData' ],
+      resources: [ '*' ]
     }));
 
+    kdaRole.addToPolicy(new iam.PolicyStatement({
+      actions: [ 'logs:PutLogEvents', 'logs:DescribeLogStreams', 'logs:DescribeLogGroups' ],
+      resources: [
+        logGroup.logGroupArn,
+        `arn:${cdk.Aws.PARTITION}:logs:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:log-group:*`
+      ]
+    }));
+
+    kdaRole.addToPolicy(new iam.PolicyStatement({
+      actions: [ 'logs:PutLogEvents' ],
+      resources: [ logStreamArn ]
+    }));
+
+
     const kdaApp = new kda.CfnApplicationV2(this, 'KdaApplication', {
-        runtimeEnvironment: 'FLINK-1_8',
-        serviceExecutionRole: kdaRole.roleArn,
-        applicationName: `${cdk.Aws.STACK_NAME}`,
-        applicationConfiguration: {
-          environmentProperties: {
-            propertyGroups: [
-              {
-                propertyGroupId: 'FlinkApplicationProperties',
-                propertyMap: {
-                  OutputBucket: `s3://${bucket.bucketName}/streaming-etl-output/`,
-                  ParquetConversion: true,
-                  InputKinesisStream: stream.streamName
-                },
-              }
-            ]
+      runtimeEnvironment: 'FLINK-1_8',
+      serviceExecutionRole: kdaRole.roleArn,
+      applicationName: `${cdk.Aws.STACK_NAME}`,
+      applicationConfiguration: {
+        environmentProperties: {
+          propertyGroups: [
+            {
+              propertyGroupId: 'FlinkApplicationProperties',
+              propertyMap: {
+                OutputBucket: `s3://${bucket.bucketName}/streaming-etl-output/`,
+                ParquetConversion: true,
+                InputKinesisStream: stream.streamName
+              },
+            }
+          ]
+        },
+        flinkApplicationConfiguration: {
+          monitoringConfiguration: {
+            logLevel: 'INFO',
+            metricsLevel: 'TASK',
+            configurationType: 'CUSTOM'
           },
-          flinkApplicationConfiguration: {
-            monitoringConfiguration: {
-              logLevel: 'INFO',
-              metricsLevel: 'TASK',
-              configurationType: 'CUSTOM'
-            },
-            parallelismConfiguration: {
-              autoScalingEnabled: false,
-              parallelism: 2,
-              parallelismPerKpu: 1,
-              configurationType: 'CUSTOM'
-            },
-            checkpointConfiguration: {
-              configurationType: "CUSTOM",
-              checkpointInterval: 60_000,
-              minPauseBetweenCheckpoints: 60_000,
-              checkpointingEnabled: true
+          parallelismConfiguration: {
+            autoScalingEnabled: false,
+            parallelism: 2,
+            parallelismPerKpu: 1,
+            configurationType: 'CUSTOM'
+          },
+          checkpointConfiguration: {
+            configurationType: "CUSTOM",
+            checkpointInterval: 60_000,
+            minPauseBetweenCheckpoints: 60_000,
+            checkpointingEnabled: true
+          }
+        },
+        applicationSnapshotConfiguration: {
+          snapshotsEnabled: false
+        },
+        applicationCodeConfiguration: {
+          codeContent: {
+            s3ContentLocation: {
+              bucketArn: bucket.bucketArn,
+              fileKey: 'target/amazon-kinesis-analytics-streaming-etl-1.0-SNAPSHOT.jar'        
             }
           },
-          applicationSnapshotConfiguration: {
-            snapshotsEnabled: false
-          },
-          applicationCodeConfiguration: {
-            codeContent: {
-              s3ContentLocation: {
-                bucketArn: bucket.bucketArn,
-                fileKey: 'target/amazon-kinesis-analytics-streaming-etl-1.0-SNAPSHOT.jar'        
-              }
-            },
-            codeContentType: 'ZIPFILE'
-          }
+          codeContentType: 'ZIPFILE'
         }
+      }
     });
 
     new kda.CfnApplicationCloudWatchLoggingOptionV2(this, 'KdsFlinkProducerLogging', {
@@ -166,8 +181,8 @@ export class StreamingEtl extends cdk.Stack {
     stream.grantReadWrite(producerRole);
     producerRole.addToPolicy(new iam.PolicyStatement({
       actions: [ 'kinesis:ListShards' ],
-      resources: [ stream.streamArn]
-    }))
+      resources: [ stream.streamArn ]
+    }));
 
     bucket.grantRead(producerRole);
     s3.Bucket.fromBucketName(this, 'BigDataBucket', 'aws-bigdata-blog').grantRead(producerRole);
@@ -182,14 +197,11 @@ export class StreamingEtl extends cdk.Stack {
       resources: [ `arn:${cdk.Aws.PARTITION}:kinesisanalytics:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:application/${kdaApp.applicationName}` ]
     }));
 
-
-    const replayCopyCommand = `aws s3 cp --recursive --no-progress --exclude '*' --include 'amazon-kinesis-replay-*.jar' 's3://${bucket.bucketName}/target/' .`
-
     const userData = UserData.forLinux()
     userData.addCommands(
       'yum install -y tmux jq java-11-amazon-corretto-headless',
+      `aws s3 cp --recursive --no-progress --exclude '*' --include 'amazon-kinesis-replay-*.jar' 's3://${bucket.bucketName}/target/' /tmp`,
       `aws --region ${cdk.Aws.REGION} kinesisanalyticsv2 start-application --application-name ${kdaApp.ref} --run-configuration '{ "ApplicationRestoreConfiguration": { "ApplicationRestoreType": "SKIP_RESTORE_FROM_SNAPSHOT" } }'`,
-      `su ssm-user -l -c "${replayCopyCommand}"`
     );
 
     const instance = new ec2.Instance(this, 'ProducerInstance', {
@@ -208,11 +220,11 @@ export class StreamingEtl extends cdk.Stack {
       resourceSignalTimeout: Duration.minutes(5)
     });
 
-    
     userData.addCommands(`/opt/aws/bin/cfn-signal -e $? --stack ${cdk.Aws.STACK_NAME} --resource ${instance.instance.logicalId} --region ${cdk.Aws.REGION}`);
+    
     instance.node.addDependency(artifacts.producerBuildSuccessWaitCondition);
 
-    new cdk.CfnOutput(this, 'ReplayCommand', { value: `java -jar amazon-kinesis-replay-1.0-SNAPSHOT.jar -streamName ${stream.streamName} -noWatermark -objectPrefix artifacts/kinesis-analytics-taxi-consumer/taxi-trips-partitioned.json.lz4/dropoff_year=2018/ -speedup 3600` });
+    new cdk.CfnOutput(this, 'ReplayCommand', { value: `java -jar /tmp/amazon-kinesis-replay-1.0-SNAPSHOT.jar -streamName ${stream.streamName} -noWatermark -objectPrefix artifacts/kinesis-analytics-taxi-consumer/taxi-trips-partitioned.json.lz4/dropoff_year=2018/ -speedup 3600` });
     new cdk.CfnOutput(this, 'ConnectWithSessionManager', { value: `https://console.aws.amazon.com/systems-manager/session-manager/${instance.instanceId}`});
 
 
