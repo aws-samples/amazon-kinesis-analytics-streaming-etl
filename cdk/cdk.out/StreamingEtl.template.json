@@ -3377,6 +3377,30 @@
         "aws:cdk:path": "StreamingEtl/InputStream/Resource"
       }
     },
+    "KdaLogGroup88624CAF": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "RetentionInDays": 7
+      },
+      "UpdateReplacePolicy": "Retain",
+      "DeletionPolicy": "Retain",
+      "Metadata": {
+        "aws:cdk:path": "StreamingEtl/KdaLogGroup/Resource"
+      }
+    },
+    "KdaLogStream7DC95165": {
+      "Type": "AWS::Logs::LogStream",
+      "Properties": {
+        "LogGroupName": {
+          "Ref": "KdaLogGroup88624CAF"
+        }
+      },
+      "UpdateReplacePolicy": "Retain",
+      "DeletionPolicy": "Retain",
+      "Metadata": {
+        "aws:cdk:path": "StreamingEtl/KdaLogStream/Resource"
+      }
+    },
     "KdaRoleB7DD543E": {
       "Type": "AWS::IAM::Role",
       "Properties": {
@@ -3437,30 +3461,6 @@
       },
       "Metadata": {
         "aws:cdk:path": "StreamingEtl/KdaRole/DefaultPolicy/Resource"
-      }
-    },
-    "KdaLogGroup88624CAF": {
-      "Type": "AWS::Logs::LogGroup",
-      "Properties": {
-        "RetentionInDays": 7
-      },
-      "UpdateReplacePolicy": "Retain",
-      "DeletionPolicy": "Retain",
-      "Metadata": {
-        "aws:cdk:path": "StreamingEtl/KdaLogGroup/Resource"
-      }
-    },
-    "KdaLogStream7DC95165": {
-      "Type": "AWS::Logs::LogStream",
-      "Properties": {
-        "LogGroupName": {
-          "Ref": "KdaLogGroup88624CAF"
-        }
-      },
-      "UpdateReplacePolicy": "Retain",
-      "DeletionPolicy": "Retain",
-      "Metadata": {
-        "aws:cdk:path": "StreamingEtl/KdaLogStream/Resource"
       }
     },
     "KdaApplication": {
@@ -3875,7 +3875,21 @@
             }
           ],
           "Version": "2012-10-17"
-        }
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":iam::aws:policy/AmazonSSMManagedInstanceCore"
+              ]
+            ]
+          }
+        ]
       },
       "Metadata": {
         "aws:cdk:path": "StreamingEtl/ReplayRole/Resource"
@@ -3888,19 +3902,125 @@
           "Statement": [
             {
               "Action": [
-                "cloudwatch:PutMetricData",
                 "kinesis:DescribeStream",
-                "kinesis:ListShards",
-                "kinesis:GetShardIterator",
                 "kinesis:GetRecords",
+                "kinesis:GetShardIterator",
                 "kinesis:PutRecord",
-                "kinesis:PutRecords",
-                "kinesisanalytics:StartApplication",
-                "s3:GetObject",
+                "kinesis:PutRecords"
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "InputStreamCFB159EA",
+                  "Arn"
+                ]
+              }
+            },
+            {
+              "Action": "kinesis:ListShards",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "InputStreamCFB159EA",
+                  "Arn"
+                ]
+              }
+            },
+            {
+              "Action": [
+                "s3:GetObject*",
+                "s3:GetBucket*",
                 "s3:List*"
               ],
               "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "Bucket83908E77",
+                    "Arn"
+                  ]
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "Bucket83908E77",
+                          "Arn"
+                        ]
+                      },
+                      "/*"
+                    ]
+                  ]
+                }
+              ]
+            },
+            {
+              "Action": [
+                "s3:GetObject*",
+                "s3:GetBucket*",
+                "s3:List*"
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":s3:::aws-bigdata-blog"
+                    ]
+                  ]
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":s3:::aws-bigdata-blog/*"
+                    ]
+                  ]
+                }
+              ]
+            },
+            {
+              "Action": "cloudwatch:PutMetricData",
+              "Effect": "Allow",
               "Resource": "*"
+            },
+            {
+              "Action": "kinesisanalytics:StartApplication",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":kinesisanalytics:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":application/",
+                    {
+                      "Ref": "AWS::StackName"
+                    }
+                  ]
+                ]
+              }
             }
           ],
           "Version": "2012-10-17"
@@ -3950,9 +4070,6 @@
           "Ref": "SsmParameterValueawsserviceamiamazonlinuxlatestamzn2amihvmx8664gp2C96584B6F00A464EAD1953AFF4B05118Parameter"
         },
         "InstanceType": "c5n.large",
-        "KeyName": {
-          "Ref": "SshKeyName"
-        },
         "SecurityGroupIds": [
           {
             "Fn::GetAtt": [
@@ -3993,7 +4110,7 @@
                 {
                   "Ref": "KdaApplication"
                 },
-                " --run-configuration '{ \"ApplicationRestoreConfiguration\": { \"ApplicationRestoreType\": \"SKIP_RESTORE_FROM_SNAPSHOT\" } }'\nsu ec2-user -l -c \"aws s3 cp --recursive --no-progress --exclude '*' --include 'amazon-kinesis-replay-*.jar' 's3://",
+                " --run-configuration '{ \"ApplicationRestoreConfiguration\": { \"ApplicationRestoreType\": \"SKIP_RESTORE_FROM_SNAPSHOT\" } }'\nsu ssm-user -l -c \"aws s3 cp --recursive --no-progress --exclude '*' --include 'amazon-kinesis-replay-*.jar' 's3://",
                 {
                   "Ref": "Bucket83908E77"
                 },
@@ -4135,22 +4252,6 @@
         ]
       }
     },
-    "ProducerInstanceSsh": {
-      "Value": {
-        "Fn::Join": [
-          "",
-          [
-            "ssh ec2-user@",
-            {
-              "Fn::GetAtt": [
-                "ProducerInstance1BB510A3",
-                "PublicDnsName"
-              ]
-            }
-          ]
-        ]
-      }
-    },
     "ReplayCommand": {
       "Value": {
         "Fn::Join": [
@@ -4161,6 +4262,19 @@
               "Ref": "InputStreamCFB159EA"
             },
             " -noWatermark -objectPrefix artifacts/kinesis-analytics-taxi-consumer/taxi-trips-partitioned.json.lz4/dropoff_year=2018/ -speedup 3600"
+          ]
+        ]
+      }
+    },
+    "ConnectWithSessionManager": {
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "https://console.aws.amazon.com/systems-manager/session-manager/",
+            {
+              "Ref": "ProducerInstance1BB510A3"
+            }
           ]
         ]
       }
@@ -4194,9 +4308,6 @@
     }
   },
   "Parameters": {
-    "SshKeyName": {
-      "Type": "AWS::EC2::KeyPair::KeyName"
-    },
     "SsmParameterValueawsserviceamiamazonlinuxlatestamzn2amihvmx8664gp2C96584B6F00A464EAD1953AFF4B05118Parameter": {
       "Type": "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>",
       "Default": "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2"

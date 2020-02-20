@@ -23,15 +23,13 @@ If you want to explore and play around with the architecture, launch this [AWS C
 
 To populate the Kinesis data stream, we use a Java application that replays a public dataset of historic taxi trips made in New York City into the data stream. Each event describes a taxi trip made in New York City and includes timestamps for the start and end of a trip, information on the boroughs the trip started and ended in, and various details on the fare of the trip. 
 
-The Java application has already been downloaded to an Amazon Elastic Compute Cloud (Amazon EC2) instance that was provisioned by AWS CloudFormation. You just need to connect to the instance and execute the JAR file to start ingesting events into the stream.
+The Java application has already been downloaded to an Amazon Elastic Compute Cloud (Amazon EC2) instance that was provisioned by AWS CloudFormation. You just need to connect to the instance and execute the JAR file to start ingesting events into the stream. Follow the link of the `ConnectWithSessionManager` output if the CloufFormation template to connect to the Amazon EC2 instance.
 
 ```
-$ ssh ec2-user@«Replay instance DNS name»
-
 $ java -jar amazon-kinesis-replay-*.jar -noWatermark -objectPrefix artifacts/kinesis-analytics-taxi-consumer/taxi-trips-partitioned.json.lz4/dropoff_year=2018/ -streamName «Kinesis stream name» -speedup 3600
 ```
 
-You can obtain these commands, including their correct parameters, from the output section of the AWS CloudFormation template that you executed previously.
+You can obtain the commands with the correct parameters from the output section of the AWS CloudFormation template that you executed previously.
 
 
 ## Configuration options

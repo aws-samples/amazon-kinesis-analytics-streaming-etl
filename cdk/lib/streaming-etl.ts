@@ -52,6 +52,16 @@ export class StreamingEtl extends cdk.Stack {
     });
 
 
+    const logGroup = new logs.LogGroup(this, 'KdaLogGroup', {
+      retention: RetentionDays.ONE_WEEK
+    });
+
+    const logStream = new logs.LogStream(this, 'KdaLogStream', {
+      logGroup: logGroup
+    });
+
+    const logStreamArn = `arn:${cdk.Aws.PARTITION}:logs:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:log-group:${logGroup.logGroupName}:log-stream:${logStream.logStreamName}`;
+
     const kdaRole = new iam.Role(this, 'KdaRole', {
       assumedBy: new iam.ServicePrincipal('kinesisanalytics.amazonaws.com'),
     });
@@ -67,14 +77,6 @@ export class StreamingEtl extends cdk.Stack {
       ],
       resources: ['*']
     }));
-
-    const logGroup = new logs.LogGroup(this, 'KdaLogGroup', {
-      retention: RetentionDays.ONE_WEEK
-    });
-
-    const logStream = new logs.LogStream(this, 'KdaLogStream', {
-      logGroup: logGroup
-    });
 
     const kdaApp = new kda.CfnApplicationV2(this, 'KdaApplication', {
         runtimeEnvironment: 'FLINK-1_8',
@@ -130,16 +132,12 @@ export class StreamingEtl extends cdk.Stack {
     new kda.CfnApplicationCloudWatchLoggingOptionV2(this, 'KdsFlinkProducerLogging', {
         applicationName: kdaApp.ref.toString(),
         cloudWatchLoggingOption: {
-          logStreamArn: `arn:${cdk.Aws.PARTITION}:logs:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:log-group:${logGroup.logGroupName}:log-stream:${logStream.logStreamName}`
+          logStreamArn: logStreamArn
         }
     });
 
     kdaApp.addDependsOn(artifacts.consumerBuildSuccessWaitCondition);
 
-
-    const sshKeyName = new cdk.CfnParameter(this, 'SshKeyName', {
-      type: 'AWS::EC2::KeyPair::KeyName'
-    }).valueAsString;
 
     const vpc = new ec2.Vpc(this, 'VPC', {
       subnetConfiguration: [
@@ -158,21 +156,32 @@ export class StreamingEtl extends cdk.Stack {
     sg.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(22));
     sg.addIngressRule(sg, ec2.Port.allTraffic());
     
-    const role = new iam.Role(this, 'ReplayRole', {
-        assumedBy: new iam.ServicePrincipal('ec2.amazonaws.com')
+    const producerRole = new iam.Role(this, 'ReplayRole', {
+      assumedBy: new iam.ServicePrincipal('ec2.amazonaws.com'),
+      managedPolicies: [
+        iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonSSMManagedInstanceCore')
+      ]
     });
 
-    role.addToPolicy(new iam.PolicyStatement({
-      actions: [
-        'cloudwatch:PutMetricData',
-        'kinesis:DescribeStream', 'kinesis:ListShards', 'kinesis:GetShardIterator', 'kinesis:GetRecords',
-        'kinesis:PutRecord', 'kinesis:PutRecords',
-        'kinesisanalytics:StartApplication',
-        's3:GetObject', 's3:List*',
-      ],
-      resources: ['*']
+    stream.grantReadWrite(producerRole);
+    producerRole.addToPolicy(new iam.PolicyStatement({
+      actions: [ 'kinesis:ListShards' ],
+      resources: [ stream.streamArn]
+    }))
+
+    bucket.grantRead(producerRole);
+    s3.Bucket.fromBucketName(this, 'BigDataBucket', 'aws-bigdata-blog').grantRead(producerRole);
+
+    producerRole.addToPolicy(new iam.PolicyStatement({
+      actions: [ 'cloudwatch:PutMetricData' ],
+      resources: [ '*' ]
     }));
-    
+
+    producerRole.addToPolicy(new iam.PolicyStatement({
+      actions: [ 'kinesisanalytics:StartApplication' ],
+      resources: [ `arn:${cdk.Aws.PARTITION}:kinesisanalytics:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:application/${kdaApp.applicationName}` ]
+    }));
+
 
     const replayCopyCommand = `aws s3 cp --recursive --no-progress --exclude '*' --include 'amazon-kinesis-replay-*.jar' 's3://${bucket.bucketName}/target/' .`
 
@@ -180,7 +189,7 @@ export class StreamingEtl extends cdk.Stack {
     userData.addCommands(
       'yum install -y tmux jq java-11-amazon-corretto-headless',
       `aws --region ${cdk.Aws.REGION} kinesisanalyticsv2 start-application --application-name ${kdaApp.ref} --run-configuration '{ "ApplicationRestoreConfiguration": { "ApplicationRestoreType": "SKIP_RESTORE_FROM_SNAPSHOT" } }'`,
-      `su ec2-user -l -c "${replayCopyCommand}"`
+      `su ssm-user -l -c "${replayCopyCommand}"`
     );
 
     const instance = new ec2.Instance(this, 'ProducerInstance', {
@@ -188,7 +197,6 @@ export class StreamingEtl extends cdk.Stack {
       vpcSubnets: {
         subnets: vpc.publicSubnets
       },
-      keyName: sshKeyName,
       instanceType: InstanceType.of(InstanceClass.C5N, InstanceSize.LARGE),
       machineImage: new AmazonLinuxImage({
         generation: AmazonLinuxGeneration.AMAZON_LINUX_2
@@ -196,7 +204,7 @@ export class StreamingEtl extends cdk.Stack {
       instanceName: `${cdk.Aws.STACK_NAME}/ProducerInstance`,
       securityGroup: sg,
       userData: userData,
-      role: role,
+      role: producerRole,
       resourceSignalTimeout: Duration.minutes(5)
     });
 
@@ -204,8 +212,8 @@ export class StreamingEtl extends cdk.Stack {
     userData.addCommands(`/opt/aws/bin/cfn-signal -e $? --stack ${cdk.Aws.STACK_NAME} --resource ${instance.instance.logicalId} --region ${cdk.Aws.REGION}`);
     instance.node.addDependency(artifacts.producerBuildSuccessWaitCondition);
 
-    new cdk.CfnOutput(this, `ProducerInstanceSsh`, { value: `ssh ec2-user@${instance.instancePublicDnsName}` });
-    new cdk.CfnOutput(this, `ReplayCommand`, { value: `java -jar amazon-kinesis-replay-1.0-SNAPSHOT.jar -streamName ${stream.streamName} -noWatermark -objectPrefix artifacts/kinesis-analytics-taxi-consumer/taxi-trips-partitioned.json.lz4/dropoff_year=2018/ -speedup 3600` });
+    new cdk.CfnOutput(this, 'ReplayCommand', { value: `java -jar amazon-kinesis-replay-1.0-SNAPSHOT.jar -streamName ${stream.streamName} -noWatermark -objectPrefix artifacts/kinesis-analytics-taxi-consumer/taxi-trips-partitioned.json.lz4/dropoff_year=2018/ -speedup 3600` });
+    new cdk.CfnOutput(this, 'ConnectWithSessionManager', { value: `https://console.aws.amazon.com/systems-manager/session-manager/${instance.instanceId}`});
 
 
     const dashboard = new cloudwatch.Dashboard(this, 'Dashboard', {
