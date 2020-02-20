@@ -131,7 +131,7 @@ export class BuildPipeline extends cdk.Construct {
       project,
       input: sourceOutput,
       extraInputs: props.secondarySourceAction ? props.secondarySourceAction.actionProperties.outputs : undefined,
-      outputs: [buildOutput]
+      outputs: [ buildOutput ]
     });
 
     const copyAction = new codepipeline_actions.S3DeployAction({
