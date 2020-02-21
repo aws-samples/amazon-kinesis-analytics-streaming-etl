@@ -163,10 +163,8 @@
           ]
         }
       },
-      "UpdateReplacePolicy": "Delete",
-      "DeletionPolicy": "Delete",
       "Metadata": {
-        "aws:cdk:path": "StreamingEtl/EmptyBucket/EmptyBucketResource/Default"
+        "aws:cdk:path": "StreamingEtl/EmptyBucket/EmptyBucketResource"
       }
     },
     "BuildArtifactsKinesisReplayBuildPipelineDownloadLambdaServiceRole2EE1C83A": {
@@ -3646,7 +3644,8 @@
         }
       },
       "DependsOn": [
-        "BuildArtifactsFlinkConsumerWaitCondition4456F317"
+        "BuildArtifactsFlinkConsumerWaitCondition4456F317",
+        "EmptyBucketEmptyBucketResource78AC492E"
       ],
       "Metadata": {
         "aws:cdk:path": "StreamingEtl/KdaApplication"
@@ -4155,9 +4154,6 @@
           }
         ]
       },
-      "DependsOn": [
-        "BuildArtifactsKinesisReplayBuildPipelineWaitCondition802E8F7A"
-      ],
       "Metadata": {
         "aws:cdk:path": "StreamingEtl/ProducerInstance/InstanceProfile"
       }
@@ -4238,7 +4234,7 @@
         }
       },
       "DependsOn": [
-        "BuildArtifactsKinesisReplayBuildPipelineWaitCondition802E8F7A",
+        "KdaApplication",
         "ReplayRoleDefaultPolicy912FC29E",
         "ReplayRoleD94AFF0C"
       ],

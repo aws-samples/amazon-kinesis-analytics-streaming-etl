@@ -1,4 +1,4 @@
-## Kinesis Analytics Streaming ETL Pipeline
+## Streaming ETL with Apache Flink and Amazon Kinesis Data Analytics
 
 A streaming ETL pipeline based on [Apache Flink](https://flink.apache.org/) and [Amazon Kinesis Data Analytics (KDA)](https://aws.amazon.com/kinesis/data-analytics/).
 
@@ -25,7 +25,7 @@ If you want to explore and play around with the architecture, launch this [AWS C
 
 To populate the Kinesis data stream, we use a Java application that replays a public dataset of historic taxi trips made in New York City into the data stream. Each event describes a taxi trip made in New York City and includes timestamps for the start and end of a trip, information on the boroughs the trip started and ended in, and various details on the fare of the trip. 
 
-The Java application has already been downloaded to an Amazon Elastic Compute Cloud (Amazon EC2) instance that was provisioned by AWS CloudFormation. You just need to connect to the instance and execute the JAR file to start ingesting events into the stream. Follow the link of the `ConnectToInstance` output if the CloudFormation template to connect to the EC2 instance and execute the following command:
+The Java application has already been downloaded to an EC2 instance that was provisioned by AWS CloudFormation. You just need to connect to the instance and execute the JAR file to start ingesting events into the stream. Follow the link next to `ConnectToInstance` in the output section of the CloudFormation template to connect to the EC2 instance and execute the following command:
 
 ```
 $ java -jar /tmp/amazon-kinesis-replay-*.jar -noWatermark -objectPrefix artifacts/kinesis-analytics-taxi-consumer/taxi-trips-partitioned.json.lz4/dropoff_year=2018/ -speedup 3600 -streamName «Kinesis stream name»
@@ -46,7 +46,7 @@ The application supports further sources and sinks, in addition to those that ar
 
 You can choose between a single Kinesis data stream and a Kafka topic as input source. In addition you can add a Kinesis data stream, a Kafka topic, an S3 bucket, and Amazon Elasticsearch Service as one or several sinks to the application.
 
-For services that are integrated with AWS Identity and Access Management (IAM), the application uses the role that is configured for the Kinesis Data Analytics application to sign requests. The role created by the CloudFormation template is configured to allow read and write requests to any S3 bucket, Kinesis data stream, and Amazon Elasticsearch Service domain in the AWS account.
+For services that are integrated with AWS Identity and Access Management (IAM), the application uses the role that is configured for the Kinesis Data Analytics application to sign requests. However, the role itself has only permissions that are required to read from the provisioned Kinesis data stream and the S3 bucket, respectively. So when you want to connect to additional resources, you need to add further permissions to the role.
 
 #### Amazon Kinesis Data Streams
 

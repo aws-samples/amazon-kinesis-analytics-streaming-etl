@@ -12,6 +12,8 @@ export interface EmptyBucketOnDeleteProps {
 }
 
 export class EmptyBucketOnDelete extends cdk.Construct {
+    customResource: cfn.CfnCustomResource;
+
     constructor(scope: cdk.Construct, id: string, props: EmptyBucketOnDeleteProps) {
         super(scope, id);
 
@@ -30,8 +32,8 @@ export class EmptyBucketOnDelete extends cdk.Construct {
 
         props.bucket.grantReadWrite(emptyBucketLambda);
 
-        new cfn.CustomResource(this, 'EmptyBucketResource', {
-            provider: CustomResourceProvider.lambda(emptyBucketLambda)
+        this.customResource = new cfn.CfnCustomResource(this, 'EmptyBucketResource', {
+            serviceToken: CustomResourceProvider.lambda(emptyBucketLambda).serviceToken
         });
     }
 }

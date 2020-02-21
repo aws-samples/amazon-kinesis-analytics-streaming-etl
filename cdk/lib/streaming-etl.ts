@@ -33,8 +33,7 @@ export class StreamingEtl extends cdk.Stack {
       }]
     });
 
-
-    new EmptyBucketOnDelete(this, 'EmptyBucket', {
+    const emptyBucket = new EmptyBucketOnDelete(this, 'EmptyBucket', {
       bucket: bucket
     });
 
@@ -152,6 +151,7 @@ export class StreamingEtl extends cdk.Stack {
     });
 
     kdaApp.addDependsOn(artifacts.consumerBuildSuccessWaitCondition);
+    kdaApp.addDependsOn(emptyBucket.customResource);
 
 
     const vpc = new ec2.Vpc(this, 'VPC', {
@@ -198,11 +198,6 @@ export class StreamingEtl extends cdk.Stack {
     }));
 
     const userData = UserData.forLinux()
-    userData.addCommands(
-      'yum install -y tmux jq java-11-amazon-corretto-headless',
-      `aws s3 cp --recursive --no-progress --exclude '*' --include 'amazon-kinesis-replay-*.jar' 's3://${bucket.bucketName}/target/' /tmp`,
-      `aws --region ${cdk.Aws.REGION} kinesisanalyticsv2 start-application --application-name ${kdaApp.ref} --run-configuration '{ "ApplicationRestoreConfiguration": { "ApplicationRestoreType": "SKIP_RESTORE_FROM_SNAPSHOT" } }'`,
-    );
 
     const instance = new ec2.Instance(this, 'ProducerInstance', {
       vpc: vpc,
@@ -218,14 +213,19 @@ export class StreamingEtl extends cdk.Stack {
       userData: userData,
       role: producerRole,
       resourceSignalTimeout: Duration.minutes(5)
-    });
+    }).instance;
 
-    userData.addCommands(`/opt/aws/bin/cfn-signal -e $? --stack ${cdk.Aws.STACK_NAME} --resource ${instance.instance.logicalId} --region ${cdk.Aws.REGION}`);
+    userData.addCommands(
+      'yum install -y tmux jq java-11-amazon-corretto-headless',
+      `aws s3 cp --recursive --no-progress --exclude '*' --include 'amazon-kinesis-replay-*.jar' 's3://${bucket.bucketName}/target/' /tmp`,
+      `aws --region ${cdk.Aws.REGION} kinesisanalyticsv2 start-application --application-name ${kdaApp.ref} --run-configuration '{ "ApplicationRestoreConfiguration": { "ApplicationRestoreType": "SKIP_RESTORE_FROM_SNAPSHOT" } }'`,
+      `/opt/aws/bin/cfn-signal -e $? --stack ${cdk.Aws.STACK_NAME} --resource ${instance.logicalId} --region ${cdk.Aws.REGION}`
+    );
     
-    instance.node.addDependency(artifacts.producerBuildSuccessWaitCondition);
+    instance.addDependsOn(kdaApp);
 
     new cdk.CfnOutput(this, 'ReplayCommand', { value: `java -jar /tmp/amazon-kinesis-replay-1.0-SNAPSHOT.jar -streamName ${stream.streamName} -noWatermark -objectPrefix artifacts/kinesis-analytics-taxi-consumer/taxi-trips-partitioned.json.lz4/dropoff_year=2018/ -speedup 3600` });
-    new cdk.CfnOutput(this, 'ConnectToInstance', { value: `https://console.aws.amazon.com/systems-manager/session-manager/${instance.instanceId}`});
+    new cdk.CfnOutput(this, 'ConnectToInstance', { value: `https://console.aws.amazon.com/systems-manager/session-manager/${instance.ref}`});
 
 
     const dashboard = new cloudwatch.Dashboard(this, 'Dashboard', {
