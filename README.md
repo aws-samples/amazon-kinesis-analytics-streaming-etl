@@ -14,7 +14,7 @@ The architecture takes advantage of several capabilities that can be achieved wh
 - **Multiple Elasticsearch indices and custom document ids**: fan-out from a single input stream to different Elasticsearch indices and explicitly control the document id
 - **Exactly-once semantics**: avoid duplicates when ingesting and delivering data between Apache Kafka, Amazon S3, and Amazon Elasticsearch Service (Amazon ES). 
 
-You can find a further details and a more thorough description and discussion of the architecture on the [AWS Big Data Blog]().
+You can find a further details and a more thorough description and discussion of the architecture on the [AWS Big Data Blog](https://aws.amazon.com/blogs/big-data/streaming-etl-with-apache-flink-and-amazon-kinesis-data-analytics/).
 
 
 ## Explore the pipeline in your own AWS account
