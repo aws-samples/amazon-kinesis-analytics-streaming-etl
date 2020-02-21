@@ -4,7 +4,7 @@ A streaming ETL pipeline based on [Apache Flink](https://flink.apache.org/) and 
 
 Apache Flink is a framework and distributed processing engine for processing data streams. AWS provides a fully managed service for Apache Flink through Amazon Kinesis Data Analytics, enabling you to quickly build and easily run sophisticated streaming applications with low operational overhead.
 
-<img src="misc/architecture-overview.png?raw=true" width="600" style="display: block; margin-left: auto; margin-right: auto;">
+<img src="misc/architecture-overview.jpg?raw=true" width="600" style="display: block; margin-left: auto; margin-right: auto;">
 
 The architecture takes advantage of several capabilities that can be achieved when running Apache Flink with Kinesis Data Analytics. Specifically, the architecture supports:
 
