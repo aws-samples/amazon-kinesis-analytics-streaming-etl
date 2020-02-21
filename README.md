@@ -19,7 +19,9 @@ You can find a further details and a more thorough description and discussion of
 
 ## Explore the pipeline in your own AWS account
 
-If you want to explore and play around with the architecture, launch this [AWS CloudFormation template](https://github.com/aws-samples/amazon-kinesis-analytics-streaming-etl/blob/master/cdk/cdk.out/CdkStack.template.json) in your AWS account. The template creates a Kinesis data stream and replays a historic set of set of taxi trips into the data stream. The events are then read by a Kinesis Data Analytics application and persisted to Amazon S3 in Apache Parquet format and partitioned by event time.
+If you want to explore and play around with the architecture, launch this [AWS CloudFormation template](cdk/cdk.out/StreamingEtl.template.json) in your AWS account. The template creates a Kinesis data stream and replays a historic set of set of taxi trips into the data stream. The events are then read by a Kinesis Data Analytics application and persisted to Amazon S3 in Apache Parquet format and partitioned by event time.
+
+[![Launch CloudFormation Stack](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://console.aws.amazon.com/cloudformation/home#/stacks/new?stackName=kinesis-analytics-streaming-etl&templateURL=https://s3.amazonaws.com/aws-bigdata-blog/artifacts/kinesis-analytics-taxi-consumer/cfn-templates/StreamingEtl.template.json)
 
 To populate the Kinesis data stream, we use a Java application that replays a public dataset of historic taxi trips made in New York City into the data stream. Each event describes a taxi trip made in New York City and includes timestamps for the start and end of a trip, information on the boroughs the trip started and ended in, and various details on the fare of the trip. 
 
