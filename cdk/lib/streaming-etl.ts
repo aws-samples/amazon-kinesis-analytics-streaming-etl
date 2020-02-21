@@ -80,7 +80,7 @@ export class StreamingEtl extends cdk.Stack {
     }));
 
     kdaRole.addToPolicy(new iam.PolicyStatement({
-      actions: [ 'logs:PutLogEvents', 'logs:DescribeLogStreams', 'logs:DescribeLogGroups' ],
+      actions: [ 'logs:DescribeLogStreams', 'logs:DescribeLogGroups' ],
       resources: [
         logGroup.logGroupArn,
         `arn:${cdk.Aws.PARTITION}:logs:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:log-group:*`
@@ -193,7 +193,7 @@ export class StreamingEtl extends cdk.Stack {
     }));
 
     producerRole.addToPolicy(new iam.PolicyStatement({
-      actions: [ 'kinesisanalytics:StartApplication' ],
+      actions: [ 'kinesisanalytics:StartApplication', 'kinesisanalytics:StopApplication', 'kinesisanalytics:DescribeApplication', 'kinesisanalytics:UpdateApplication' ],
       resources: [ `arn:${cdk.Aws.PARTITION}:kinesisanalytics:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:application/${kdaApp.applicationName}` ]
     }));
 
@@ -225,7 +225,7 @@ export class StreamingEtl extends cdk.Stack {
     instance.node.addDependency(artifacts.producerBuildSuccessWaitCondition);
 
     new cdk.CfnOutput(this, 'ReplayCommand', { value: `java -jar /tmp/amazon-kinesis-replay-1.0-SNAPSHOT.jar -streamName ${stream.streamName} -noWatermark -objectPrefix artifacts/kinesis-analytics-taxi-consumer/taxi-trips-partitioned.json.lz4/dropoff_year=2018/ -speedup 3600` });
-    new cdk.CfnOutput(this, 'ConnectWithSessionManager', { value: `https://console.aws.amazon.com/systems-manager/session-manager/${instance.instanceId}`});
+    new cdk.CfnOutput(this, 'ConnectToInstance', { value: `https://console.aws.amazon.com/systems-manager/session-manager/${instance.instanceId}`});
 
 
     const dashboard = new cloudwatch.Dashboard(this, 'Dashboard', {

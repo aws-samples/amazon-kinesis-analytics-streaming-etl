@@ -3490,7 +3490,6 @@
             },
             {
               "Action": [
-                "logs:PutLogEvents",
                 "logs:DescribeLogStreams",
                 "logs:DescribeLogGroups"
               ],
@@ -4102,7 +4101,12 @@
               "Resource": "*"
             },
             {
-              "Action": "kinesisanalytics:StartApplication",
+              "Action": [
+                "kinesisanalytics:StartApplication",
+                "kinesisanalytics:StopApplication",
+                "kinesisanalytics:DescribeApplication",
+                "kinesisanalytics:UpdateApplication"
+              ],
               "Effect": "Allow",
               "Resource": {
                 "Fn::Join": [
@@ -4372,7 +4376,7 @@
         ]
       }
     },
-    "ConnectWithSessionManager": {
+    "ConnectToInstance": {
       "Value": {
         "Fn::Join": [
           "",
