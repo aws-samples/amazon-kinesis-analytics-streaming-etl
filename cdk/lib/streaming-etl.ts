@@ -52,11 +52,13 @@ export class StreamingEtl extends cdk.Stack {
 
 
     const logGroup = new logs.LogGroup(this, 'KdaLogGroup', {
-      retention: RetentionDays.ONE_WEEK
+      retention: RetentionDays.ONE_WEEK,
+      removalPolicy: RemovalPolicy.DESTROY
     });
 
     const logStream = new logs.LogStream(this, 'KdaLogStream', {
-      logGroup: logGroup
+      logGroup: logGroup,
+      removalPolicy: RemovalPolicy.DESTROY
     });
 
     const logStreamArn = `arn:${cdk.Aws.PARTITION}:logs:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:log-group:${logGroup.logGroupName}:log-stream:${logStream.logStreamName}`;
@@ -151,7 +153,7 @@ export class StreamingEtl extends cdk.Stack {
     });
 
     kdaApp.addDependsOn(artifacts.consumerBuildSuccessWaitCondition);
-    kdaApp.addDependsOn(emptyBucket.customResource);
+    kdaApp.addDependsOn(emptyBucket.customResource);       //ensures that the app is stopped before the bucket is emptied
 
 
     const vpc = new ec2.Vpc(this, 'VPC', {
@@ -163,13 +165,6 @@ export class StreamingEtl extends cdk.Stack {
         }
       ]
     });
-
-    const sg = new ec2.SecurityGroup(this, 'SecurityGroup', {
-      vpc: vpc
-    });
-
-    sg.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(22));
-    sg.addIngressRule(sg, ec2.Port.allTraffic());
     
     const producerRole = new iam.Role(this, 'ReplayRole', {
       assumedBy: new iam.ServicePrincipal('ec2.amazonaws.com'),
@@ -209,7 +204,6 @@ export class StreamingEtl extends cdk.Stack {
         generation: AmazonLinuxGeneration.AMAZON_LINUX_2
       }),
       instanceName: `${cdk.Aws.STACK_NAME}/ProducerInstance`,
-      securityGroup: sg,
       userData: userData,
       role: producerRole,
       resourceSignalTimeout: Duration.minutes(5)

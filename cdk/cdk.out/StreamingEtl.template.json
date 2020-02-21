@@ -3380,8 +3380,8 @@
       "Properties": {
         "RetentionInDays": 7
       },
-      "UpdateReplacePolicy": "Retain",
-      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Delete",
+      "DeletionPolicy": "Delete",
       "Metadata": {
         "aws:cdk:path": "StreamingEtl/KdaLogGroup/Resource"
       }
@@ -3393,8 +3393,8 @@
           "Ref": "KdaLogGroup88624CAF"
         }
       },
-      "UpdateReplacePolicy": "Retain",
-      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Delete",
+      "DeletionPolicy": "Delete",
       "Metadata": {
         "aws:cdk:path": "StreamingEtl/KdaLogStream/Resource"
       }
@@ -3905,56 +3905,6 @@
         "aws:cdk:path": "StreamingEtl/VPC/VPCGW"
       }
     },
-    "SecurityGroupDD263621": {
-      "Type": "AWS::EC2::SecurityGroup",
-      "Properties": {
-        "GroupDescription": "StreamingEtl/SecurityGroup",
-        "SecurityGroupEgress": [
-          {
-            "CidrIp": "0.0.0.0/0",
-            "Description": "Allow all outbound traffic by default",
-            "IpProtocol": "-1"
-          }
-        ],
-        "SecurityGroupIngress": [
-          {
-            "CidrIp": "0.0.0.0/0",
-            "Description": "from 0.0.0.0/0:22",
-            "FromPort": 22,
-            "IpProtocol": "tcp",
-            "ToPort": 22
-          }
-        ],
-        "VpcId": {
-          "Ref": "VPCB9E5F0B4"
-        }
-      },
-      "Metadata": {
-        "aws:cdk:path": "StreamingEtl/SecurityGroup/Resource"
-      }
-    },
-    "SecurityGroupfromStreamingEtlSecurityGroup734C9F5FALLTRAFFICC6024B78": {
-      "Type": "AWS::EC2::SecurityGroupIngress",
-      "Properties": {
-        "IpProtocol": "-1",
-        "Description": "from StreamingEtlSecurityGroup734C9F5F:ALL TRAFFIC",
-        "GroupId": {
-          "Fn::GetAtt": [
-            "SecurityGroupDD263621",
-            "GroupId"
-          ]
-        },
-        "SourceSecurityGroupId": {
-          "Fn::GetAtt": [
-            "SecurityGroupDD263621",
-            "GroupId"
-          ]
-        }
-      },
-      "Metadata": {
-        "aws:cdk:path": "StreamingEtl/SecurityGroup/from StreamingEtlSecurityGroup734C9F5F:ALL TRAFFIC"
-      }
-    },
     "ReplayRoleD94AFF0C": {
       "Type": "AWS::IAM::Role",
       "Properties": {
@@ -4145,6 +4095,41 @@
         "aws:cdk:path": "StreamingEtl/ReplayRole/DefaultPolicy/Resource"
       }
     },
+    "ProducerInstanceInstanceSecurityGroup809E00B3": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "StreamingEtl/ProducerInstance/InstanceSecurityGroup",
+        "SecurityGroupEgress": [
+          {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow all outbound traffic by default",
+            "IpProtocol": "-1"
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Ref": "AWS::StackName"
+                  },
+                  "/ProducerInstance"
+                ]
+              ]
+            }
+          }
+        ],
+        "VpcId": {
+          "Ref": "VPCB9E5F0B4"
+        }
+      },
+      "Metadata": {
+        "aws:cdk:path": "StreamingEtl/ProducerInstance/InstanceSecurityGroup/Resource"
+      }
+    },
     "ProducerInstanceInstanceProfile4ABBC2A1": {
       "Type": "AWS::IAM::InstanceProfile",
       "Properties": {
@@ -4179,7 +4164,7 @@
         "SecurityGroupIds": [
           {
             "Fn::GetAtt": [
-              "SecurityGroupDD263621",
+              "ProducerInstanceInstanceSecurityGroup809E00B3",
               "GroupId"
             ]
           }
