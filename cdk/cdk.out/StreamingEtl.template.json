@@ -2286,11 +2286,11 @@
         "Runtime": "python3.7",
         "Environment": {
           "Variables": {
-            "url": "https://github.com/aws-samples/amazon-kinesis-analytics-streaming-etl/archive/master.zip",
+            "url": "https://github.com/aws-samples/amazon-kinesis-analytics-streaming-etl/archive/release-0.1.0.zip",
             "bucket": {
               "Ref": "Bucket83908E77"
             },
-            "key": "sources/amazon-kinesis-analytics-streaming-etl-master.zip"
+            "key": "sources/amazon-kinesis-analytics-streaming-etl-release-0.1.0.zip"
           }
         },
         "Timeout": 30
@@ -2467,7 +2467,7 @@
           ]
         },
         "Source": {
-          "BuildSpec": "{\n  \"version\": \"0.2\",\n  \"phases\": {\n    \"pre_build\": {\n      \"commands\": [\n        \"mvn install:install-file -B -Dfile=$CODEBUILD_SRC_DIR_FlinkKinesisConnector/flink-connector-kinesis_2.11-1.8.2.jar -DpomFile=$CODEBUILD_SRC_DIR_FlinkKinesisConnector/flink-connector-kinesis_2.11-1.8.2.pom.xml\"\n      ]\n    },\n    \"build\": {\n      \"commands\": [\n        \"cd amazon-kinesis-analytics-streaming-etl-master\",\n        \"mvn clean package -B -Dflink.version=1.8.2\"\n      ]\n    }\n  },\n  \"artifacts\": {\n    \"files\": [\n      \"target/amazon-kinesis-analytics-*.jar\"\n    ],\n    \"base-directory\": \"amazon-kinesis-analytics-streaming-etl-master\",\n    \"discard-paths\": false\n  }\n}",
+          "BuildSpec": "{\n  \"version\": \"0.2\",\n  \"phases\": {\n    \"pre_build\": {\n      \"commands\": [\n        \"mvn install:install-file -B -Dfile=$CODEBUILD_SRC_DIR_FlinkKinesisConnector/flink-connector-kinesis_2.11-1.8.2.jar -DpomFile=$CODEBUILD_SRC_DIR_FlinkKinesisConnector/flink-connector-kinesis_2.11-1.8.2.pom.xml\"\n      ]\n    },\n    \"build\": {\n      \"commands\": [\n        \"cd amazon-kinesis-analytics-streaming-etl-release-0.1.0\",\n        \"mvn clean package -B -Dflink.version=1.8.2\"\n      ]\n    }\n  },\n  \"artifacts\": {\n    \"files\": [\n      \"target/amazon-kinesis-analytics-*.jar\"\n    ],\n    \"base-directory\": \"amazon-kinesis-analytics-streaming-etl-release-0.1.0\",\n    \"discard-paths\": false\n  }\n}",
           "Type": "CODEPIPELINE"
         }
       },
@@ -2731,7 +2731,7 @@
                   "S3Bucket": {
                     "Ref": "Bucket83908E77"
                   },
-                  "S3ObjectKey": "sources/amazon-kinesis-analytics-streaming-etl-master.zip"
+                  "S3ObjectKey": "sources/amazon-kinesis-analytics-streaming-etl-release-0.1.0.zip"
                 },
                 "Name": "SourceAction",
                 "OutputArtifacts": [

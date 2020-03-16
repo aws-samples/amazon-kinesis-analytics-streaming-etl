@@ -45,7 +45,7 @@ export class StreamingEtl extends cdk.Stack {
       bucket: bucket,
       flinkVersion: '1.8.2',
       scalaVersion: '2.11',
-      flinkConsumerVersion: 'master'
+      flinkConsumerVersion: 'release-0.1.0'
     });
 
 
