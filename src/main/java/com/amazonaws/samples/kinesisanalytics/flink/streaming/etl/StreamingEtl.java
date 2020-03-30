@@ -135,7 +135,7 @@ public class StreamingEtl {
 	private static SourceFunction<TripEvent> getKinesisSource(ParameterTool parameter) {
 		String streamName = parameter.getRequired("InputKinesisStream");
 		String region = parameter.get("InputStreamRegion", DEFAULT_REGION_NAME);
-		String initialPosition = parameter.get("InputStreamInitalPosition", ConsumerConfigConstants.InitialPosition.LATEST.toString());
+		String initialPosition = parameter.get("InputStreamInitalPosition", ConsumerConfigConstants.DEFAULT_STREAM_INITIAL_POSITION);
 
 		//set Kinesis consumer properties
 		Properties kinesisConsumerConfig = new Properties();
@@ -146,7 +146,7 @@ public class StreamingEtl {
 		//poll new events from the Kinesis stream once every second
 		kinesisConsumerConfig.setProperty(ConsumerConfigConstants.SHARD_GETRECORDS_INTERVAL_MILLIS, "1000");
 
-		kinesisConsumerConfig.setProperty(ConsumerConfigConstants.DEFAULT_STREAM_INITIAL_POSITION, initialPosition);
+		kinesisConsumerConfig.setProperty(ConsumerConfigConstants.STREAM_INITIAL_POSITION, initialPosition);
 
 		return new FlinkKinesisConsumer<>(streamName,
 				new TripEventSchema(),
