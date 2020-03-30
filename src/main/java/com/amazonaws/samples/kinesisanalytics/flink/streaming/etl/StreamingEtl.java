@@ -42,6 +42,8 @@ import org.apache.flink.streaming.api.functions.sink.filesystem.rollingpolicies.
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
 import org.apache.flink.streaming.connectors.elasticsearch.ElasticsearchSinkFunction;
 import org.apache.flink.streaming.connectors.elasticsearch.RequestIndexer;
+import org.apache.flink.streaming.connectors.elasticsearch.util.RetryRejectedExecutionFailureHandler;
+import org.apache.flink.streaming.connectors.elasticsearch6.ElasticsearchSink;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
 import org.apache.flink.streaming.connectors.kinesis.FlinkKinesisConsumer;
@@ -133,6 +135,7 @@ public class StreamingEtl {
 	private static SourceFunction<TripEvent> getKinesisSource(ParameterTool parameter) {
 		String streamName = parameter.getRequired("InputKinesisStream");
 		String region = parameter.get("InputStreamRegion", DEFAULT_REGION_NAME);
+		String initialPosition = parameter.get("InputStreamInitalPosition", ConsumerConfigConstants.InitialPosition.LATEST.toString());
 
 		//set Kinesis consumer properties
 		Properties kinesisConsumerConfig = new Properties();
@@ -142,6 +145,8 @@ public class StreamingEtl {
 		kinesisConsumerConfig.setProperty(AWSConfigConstants.AWS_CREDENTIALS_PROVIDER, "AUTO");
 		//poll new events from the Kinesis stream once every second
 		kinesisConsumerConfig.setProperty(ConsumerConfigConstants.SHARD_GETRECORDS_INTERVAL_MILLIS, "1000");
+
+		kinesisConsumerConfig.setProperty(ConsumerConfigConstants.DEFAULT_STREAM_INITIAL_POSITION, initialPosition);
 
 		return new FlinkKinesisConsumer<>(streamName,
 				new TripEventSchema(),
@@ -218,7 +223,9 @@ public class StreamingEtl {
 		String elasticsearchEndpoint = parameter.getRequired("OutputElasticsearchEndpoint");
 		String region = parameter.get("ElasticsearchRegion", DEFAULT_REGION_NAME);
 
-		return AmazonElasticsearchSink.buildElasticsearchSink(elasticsearchEndpoint, region,
+		ElasticsearchSink.Builder<TripEvent> builder =  AmazonElasticsearchSink.elasticsearchSinkBuilder(
+				elasticsearchEndpoint,
+				region,
 				new ElasticsearchSinkFunction<TripEvent>() {
 					IndexRequest createIndexRequest(TripEvent element) {
 						String type = element.getType().toString();
@@ -237,5 +244,21 @@ public class StreamingEtl {
 					}
 				}
 		);
+
+		builder.setFailureHandler(new RetryRejectedExecutionFailureHandler());
+
+		if (parameter.has("ElasticsearchBulkFlushMaxSizeMb")) {
+			builder.setBulkFlushMaxSizeMb(parameter.getInt("ElasticsearchBulkFlushMaxSizeMb"));
+		}
+
+		if (parameter.has("ElasticsearchBulkFlushMaxActions")) {
+			builder.setBulkFlushMaxActions(parameter.getInt("ElasticsearchBulkFlushMaxActions"));
+		}
+
+		if (parameter.has("ElasticsearchBulkFlushInterva")) {
+			builder.setBulkFlushInterval(parameter.getLong("ElasticsearchBulkFlushInterva"));
+		}
+
+		return builder.build();
 	}
 }

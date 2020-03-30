@@ -50,7 +50,7 @@ public class AmazonElasticsearchSink {
   private static final Logger LOG = LoggerFactory.getLogger(AmazonElasticsearchSink.class);
 
   public static <T> ElasticsearchSink<T> buildElasticsearchSink(String elasticsearchEndpoint, String region, String indexName, String type) {
-    return buildElasticsearchSink(elasticsearchEndpoint, region,
+    return elasticsearchSinkBuilder(elasticsearchEndpoint, region,
         new ElasticsearchSinkFunction<T>() {
           public IndexRequest createIndexRequest(T element) {
             return Requests.indexRequest()
@@ -64,10 +64,10 @@ public class AmazonElasticsearchSink {
             indexer.add(createIndexRequest(element));
           }
         }
-      );
+      ).build();
   }
 
-    public static <T> ElasticsearchSink<T> buildElasticsearchSink(String elasticsearchEndpoint, String region, ElasticsearchSinkFunction<T> sinkFunction) {
+    public static <T> ElasticsearchSink.Builder<T> elasticsearchSinkBuilder(String elasticsearchEndpoint, String region, ElasticsearchSinkFunction<T> sinkFunction) {
     final List<HttpHost> httpHosts = Arrays.asList(HttpHost.create(elasticsearchEndpoint));
     final SerializableAWSSigningRequestInterceptor requestInterceptor = new SerializableAWSSigningRequestInterceptor(region);
 
@@ -77,9 +77,7 @@ public class AmazonElasticsearchSink {
         restClientBuilder -> restClientBuilder.setHttpClientConfigCallback(callback -> callback.addInterceptorLast(requestInterceptor))
     );
 
-    esSinkBuilder.setFailureHandler(new RetryRejectedExecutionFailureHandler());
-
-    return esSinkBuilder.build();
+    return esSinkBuilder;
   }
 
 
