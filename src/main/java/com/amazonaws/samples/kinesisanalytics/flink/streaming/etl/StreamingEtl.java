@@ -255,8 +255,8 @@ public class StreamingEtl {
 			builder.setBulkFlushMaxActions(parameter.getInt("ElasticsearchBulkFlushMaxActions"));
 		}
 
-		if (parameter.has("ElasticsearchBulkFlushInterva")) {
-			builder.setBulkFlushInterval(parameter.getLong("ElasticsearchBulkFlushInterva"));
+		if (parameter.has("ElasticsearchBulkFlushInterval")) {
+			builder.setBulkFlushInterval(parameter.getLong("ElasticsearchBulkFlushInterval"));
 		}
 
 		return builder.build();

@@ -67,7 +67,7 @@ public class AmazonElasticsearchSink {
       ).build();
   }
 
-    public static <T> ElasticsearchSink.Builder<T> elasticsearchSinkBuilder(String elasticsearchEndpoint, String region, ElasticsearchSinkFunction<T> sinkFunction) {
+  public static <T> ElasticsearchSink.Builder<T> elasticsearchSinkBuilder(String elasticsearchEndpoint, String region, ElasticsearchSinkFunction<T> sinkFunction) {
     final List<HttpHost> httpHosts = Arrays.asList(HttpHost.create(elasticsearchEndpoint));
     final SerializableAWSSigningRequestInterceptor requestInterceptor = new SerializableAWSSigningRequestInterceptor(region);
 
