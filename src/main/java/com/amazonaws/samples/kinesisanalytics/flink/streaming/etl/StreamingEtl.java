@@ -36,6 +36,7 @@ import org.apache.flink.formats.parquet.avro.ParquetAvroWriters;
 import org.apache.flink.kinesis.shaded.com.amazonaws.regions.Regions;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.functions.sink.DiscardingSink;
 import org.apache.flink.streaming.api.functions.sink.SinkFunction;
 import org.apache.flink.streaming.api.functions.sink.filesystem.StreamingFileSink;
 import org.apache.flink.streaming.api.functions.sink.filesystem.rollingpolicies.DefaultRollingPolicy;
@@ -116,6 +117,14 @@ public class StreamingEtl {
 					.name("Kinesis sink");
 		}
 
+		if (parameter.has("OutputDiscarding")) {
+			LOG.info("Writing to Discarding sink");
+
+			events
+					.addSink(new DiscardingSink<>())
+					.name("Discarding sink");
+		}
+
 		if (parameter.has("OutputKafkaBootstrapServers") && parameter.has("OutputKafkaTopic")) {
 			LOG.info("Writing to {} Kafka topic", parameter.get("OutputKafkaTopic"));
 
@@ -124,7 +133,7 @@ public class StreamingEtl {
 					.name("Kafka sink");
 		}
 
-		if (!(parameter.has("OutputBucket") || parameter.has("OutputElasticsearchEndpoint") || (parameter.has("OutputKafkaBootstrapServers") && parameter.has("OutputKafkaTopic")) || parameter.has("OutputKinesisStream"))) {
+		if (!(parameter.has("OutputDiscarding") || parameter.has("OutputBucket") || parameter.has("OutputElasticsearchEndpoint") || (parameter.has("OutputKafkaBootstrapServers") && parameter.has("OutputKafkaTopic")) || parameter.has("OutputKinesisStream"))) {
 			throw new RuntimeException("Missing runtime parameters: Specify 'OutputBucket' or 'OutputElasticsearchEndpoint' or ('OutputKafkaBootstrapServers' and 'OutputKafkaTopic') as a parameters to the Flink job");
 		}
 
