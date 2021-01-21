@@ -8,8 +8,6 @@ import { BuildPipeline } from './build-pipeline-with-wait-condition';
 
 export interface BuildArtifactsProps {
   bucket: s3.Bucket,
-  flinkVersion: string,
-  scalaVersion: string,
   flinkConsumerVersion: string
   kinesisReplayVersion: string
 }

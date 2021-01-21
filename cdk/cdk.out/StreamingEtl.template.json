@@ -1305,11 +1305,11 @@
         },
         "Environment": {
           "Variables": {
-            "url": "https://github.com/aws-samples/amazon-kinesis-analytics-streaming-etl/archive/0.2.0.zip",
+            "url": "https://github.com/aws-samples/amazon-kinesis-analytics-streaming-etl/archive/0.1.1.zip",
             "bucket": {
               "Ref": "Bucket83908E77"
             },
-            "key": "sources/amazon-kinesis-analytics-streaming-etl-0.2.0.zip"
+            "key": "sources/amazon-kinesis-analytics-streaming-etl-0.1.1.zip"
           }
         },
         "Handler": "index.download_sources",
@@ -1523,7 +1523,7 @@
           ]
         },
         "Source": {
-          "BuildSpec": "{\n  \"version\": \"0.2\",\n  \"phases\": {\n    \"build\": {\n      \"commands\": [\n        \"cd amazon-kinesis-analytics-streaming-etl-0.2.0\",\n        \"mvn clean package -B\"\n      ]\n    }\n  },\n  \"artifacts\": {\n    \"files\": [\n      \"target/amazon-kinesis-analytics-streaming-etl-*.jar\"\n    ],\n    \"discard-paths\": false,\n    \"base-directory\": \"amazon-kinesis-analytics-streaming-etl-0.2.0\"\n  }\n}",
+          "BuildSpec": "{\n  \"version\": \"0.2\",\n  \"phases\": {\n    \"build\": {\n      \"commands\": [\n        \"cd amazon-kinesis-analytics-streaming-etl-0.1.1\",\n        \"mvn clean package -B\"\n      ]\n    }\n  },\n  \"artifacts\": {\n    \"files\": [\n      \"target/amazon-kinesis-analytics-streaming-etl-*.jar\"\n    ],\n    \"discard-paths\": false,\n    \"base-directory\": \"amazon-kinesis-analytics-streaming-etl-0.1.1\"\n  }\n}",
           "Type": "CODEPIPELINE"
         },
         "EncryptionKey": "alias/aws/s3"
@@ -1778,7 +1778,7 @@
                   "S3Bucket": {
                     "Ref": "Bucket83908E77"
                   },
-                  "S3ObjectKey": "sources/amazon-kinesis-analytics-streaming-etl-0.2.0.zip"
+                  "S3ObjectKey": "sources/amazon-kinesis-analytics-streaming-etl-0.1.1.zip"
                 },
                 "Name": "SourceAction",
                 "OutputArtifacts": [
@@ -3248,7 +3248,7 @@
     "CDKMetadata": {
       "Type": "AWS::CDK::Metadata",
       "Properties": {
-        "Modules": "aws-cdk=1.85.0,@aws-cdk/assets=1.83.0,@aws-cdk/aws-applicationautoscaling=1.83.0,@aws-cdk/aws-autoscaling=1.83.0,@aws-cdk/aws-autoscaling-common=1.83.0,@aws-cdk/aws-autoscaling-hooktargets=1.83.0,@aws-cdk/aws-cloudformation=1.83.0,@aws-cdk/aws-cloudwatch=1.83.0,@aws-cdk/aws-codebuild=1.83.0,@aws-cdk/aws-codecommit=1.83.0,@aws-cdk/aws-codeguruprofiler=1.83.0,@aws-cdk/aws-codepipeline=1.83.0,@aws-cdk/aws-codepipeline-actions=1.83.0,@aws-cdk/aws-ec2=1.83.0,@aws-cdk/aws-ecr=1.83.0,@aws-cdk/aws-ecr-assets=1.83.0,@aws-cdk/aws-ecs=1.83.0,@aws-cdk/aws-elasticloadbalancingv2=1.83.0,@aws-cdk/aws-events=1.83.0,@aws-cdk/aws-events-targets=1.83.0,@aws-cdk/aws-iam=1.83.0,@aws-cdk/aws-kinesis=1.83.0,@aws-cdk/aws-kinesisanalytics=1.83.0,@aws-cdk/aws-kms=1.83.0,@aws-cdk/aws-lambda=1.83.0,@aws-cdk/aws-logs=1.83.0,@aws-cdk/aws-s3=1.83.0,@aws-cdk/aws-s3-assets=1.83.0,@aws-cdk/aws-servicediscovery=1.83.0,@aws-cdk/aws-sns=1.83.0,@aws-cdk/aws-sns-subscriptions=1.83.0,@aws-cdk/aws-sqs=1.83.0,@aws-cdk/aws-ssm=1.83.0,@aws-cdk/cloud-assembly-schema=1.83.0,@aws-cdk/core=1.83.0,@aws-cdk/custom-resources=1.83.0,@aws-cdk/cx-api=1.83.0,@aws-cdk/region-info=1.83.0,jsii-runtime=node.js/v15.6.0"
+        "Modules": "aws-cdk=1.85.0,@aws-cdk/assets=1.85.0,@aws-cdk/aws-applicationautoscaling=1.85.0,@aws-cdk/aws-autoscaling=1.85.0,@aws-cdk/aws-autoscaling-common=1.85.0,@aws-cdk/aws-autoscaling-hooktargets=1.85.0,@aws-cdk/aws-cloudformation=1.85.0,@aws-cdk/aws-cloudwatch=1.85.0,@aws-cdk/aws-codebuild=1.85.0,@aws-cdk/aws-codecommit=1.85.0,@aws-cdk/aws-codeguruprofiler=1.85.0,@aws-cdk/aws-codepipeline=1.85.0,@aws-cdk/aws-codepipeline-actions=1.85.0,@aws-cdk/aws-ec2=1.85.0,@aws-cdk/aws-ecr=1.85.0,@aws-cdk/aws-ecr-assets=1.85.0,@aws-cdk/aws-ecs=1.85.0,@aws-cdk/aws-elasticloadbalancingv2=1.85.0,@aws-cdk/aws-events=1.85.0,@aws-cdk/aws-events-targets=1.85.0,@aws-cdk/aws-iam=1.85.0,@aws-cdk/aws-kinesis=1.85.0,@aws-cdk/aws-kinesisanalytics=1.85.0,@aws-cdk/aws-kms=1.85.0,@aws-cdk/aws-lambda=1.85.0,@aws-cdk/aws-logs=1.85.0,@aws-cdk/aws-s3=1.85.0,@aws-cdk/aws-s3-assets=1.85.0,@aws-cdk/aws-servicediscovery=1.85.0,@aws-cdk/aws-sns=1.85.0,@aws-cdk/aws-sns-subscriptions=1.85.0,@aws-cdk/aws-sqs=1.85.0,@aws-cdk/aws-ssm=1.85.0,@aws-cdk/cloud-assembly-schema=1.85.0,@aws-cdk/core=1.85.0,@aws-cdk/custom-resources=1.85.0,@aws-cdk/cx-api=1.85.0,@aws-cdk/region-info=1.85.0,jsii-runtime=node.js/v15.6.0"
       },
       "Metadata": {
         "aws:cdk:path": "StreamingEtl/CDKMetadata/Default"
