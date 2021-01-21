@@ -71,6 +71,13 @@ This file has been modified to include additional dependencies.
 			<scope>provided</scope>
 		</dependency>
 
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-core</artifactId>
+			<version>${flink.version}</version>
+		</dependency>
+
+
 		<!-- Kinesis Data Analytics for Java dependency -->
 
 		<dependency>
