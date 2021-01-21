@@ -30,7 +30,7 @@ This file has been modified to include additional dependencies.
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<flink.version>1.8.2</flink.version>
+		<flink.version>1.11.1</flink.version>
 		<java.version>1.8</java.version>
 		<scala.binary.version>2.11</scala.binary.version>
 		<avro.version>1.8.2</avro.version>
@@ -76,7 +76,7 @@ This file has been modified to include additional dependencies.
 		<dependency>
 			<groupId>com.amazonaws</groupId>
 			<artifactId>aws-kinesisanalytics-runtime</artifactId>
-			<version>1.1.0</version>
+			<version>1.2.0</version>
 		</dependency>
 
 		<!-- Add connector dependencies here. They must be in the default scope (compile). -->
@@ -107,7 +107,7 @@ This file has been modified to include additional dependencies.
 
 		<dependency>
 			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-parquet</artifactId>
+			<artifactId>flink-parquet_${scala.binary.version}</artifactId>
 			<version>${flink.version}</version>
 		</dependency>
 

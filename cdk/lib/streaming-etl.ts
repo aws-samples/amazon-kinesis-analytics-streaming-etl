@@ -43,9 +43,10 @@ export class StreamingEtl extends cdk.Stack {
 
     const artifacts = new BuildArtifacts(this, 'BuildArtifacts', {
       bucket: bucket,
-      flinkVersion: '1.8.2',
+      flinkVersion: '1.11.1',
       scalaVersion: '2.11',
-      flinkConsumerVersion: 'master'
+      flinkConsumerVersion: '0.2.0',
+      kinesisReplayVersion: '0.1.1'
     });
 
 
