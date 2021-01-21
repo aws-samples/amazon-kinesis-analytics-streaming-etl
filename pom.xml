@@ -38,6 +38,7 @@ This file has been modified to include additional dependencies.
 		<log4j.version>2.14.0</log4j.version>
 
 		<avro.version>1.8.2</avro.version>
+		<flink.format.parquet.version>1.10.0</flink.format.parquet.version>
 	</properties>
 
 	<repositories>
@@ -136,6 +137,12 @@ This file has been modified to include additional dependencies.
 			<groupId>vc.inreach.aws</groupId>
 			<artifactId>aws-signing-request-interceptor</artifactId>
 			<version>0.0.22</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.parquet</groupId>
+			<artifactId>parquet-avro</artifactId>
+			<version>${flink.format.parquet.version}</version>
 		</dependency>
 
 		<!-- Add logging framework, to produce console output when running in the IDE. -->
