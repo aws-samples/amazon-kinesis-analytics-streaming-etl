@@ -2485,7 +2485,7 @@
     "KdaApplication": {
       "Type": "AWS::KinesisAnalyticsV2::Application",
       "Properties": {
-        "RuntimeEnvironment": "FLINK-1_8",
+        "RuntimeEnvironment": "FLINK-1_11",
         "ServiceExecutionRole": {
           "Fn::GetAtt": [
             "KdaRoleB7DD543E",

@@ -97,7 +97,7 @@ export class StreamingEtl extends cdk.Stack {
 
 
     const kdaApp = new kda.CfnApplicationV2(this, 'KdaApplication', {
-      runtimeEnvironment: 'FLINK-1_8',
+      runtimeEnvironment: 'FLINK-1_11',
       serviceExecutionRole: kdaRole.roleArn,
       applicationName: `${cdk.Aws.STACK_NAME}`,
       applicationConfiguration: {
