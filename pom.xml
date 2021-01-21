@@ -124,6 +124,12 @@ This file has been modified to include additional dependencies.
 		</dependency>
 
 		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-s3-fs-hadoop</artifactId>
+			<version>${flink.version}</version>
+		</dependency>
+
+		<dependency>
 			<groupId>vc.inreach.aws</groupId>
 			<artifactId>aws-signing-request-interceptor</artifactId>
 			<version>0.0.22</version>
