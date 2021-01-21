@@ -17,8 +17,9 @@
 
 package com.amazonaws.samples.kinesisanalytics.flink.streaming.etl.utils;
 
-import com.amazonaws.samples.kinesisanalytics.flink.streaming.etl.events.TripEvent;
 import java.io.Serializable;
+
+import com.amazonaws.samples.kinesisanalytics.flink.streaming.etl.events.TripEvent;
 import org.apache.flink.core.io.SimpleVersionedSerializer;
 import org.apache.flink.streaming.api.functions.sink.filesystem.BucketAssigner;
 import org.apache.flink.streaming.api.functions.sink.filesystem.bucketassigners.SimpleVersionedStringSerializer;

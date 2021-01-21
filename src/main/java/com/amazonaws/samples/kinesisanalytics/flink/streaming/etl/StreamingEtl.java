@@ -62,7 +62,18 @@ import org.slf4j.LoggerFactory;
 public class StreamingEtl {
 	private static final Logger LOG = LoggerFactory.getLogger(StreamingEtl.class);
 
-	private static final String DEFAULT_REGION_NAME = Regions.getCurrentRegion() == null ? "eu-west-1" : Regions.getCurrentRegion().getName();
+	private static final String DEFAULT_REGION_NAME;
+
+	static {
+		String regionName = "eu-west-1";
+
+		try {
+			regionName = Regions.getCurrentRegion().getName();
+		} catch (Exception e) {
+		} finally {
+			DEFAULT_REGION_NAME = regionName;
+		}
+	}
 
 	public static void main(String[] args) throws Exception {
 		ParameterTool parameter = ParameterToolUtils.fromArgsAndApplicationProperties(args);
@@ -96,7 +107,7 @@ public class StreamingEtl {
 			LOG.info("Writing to {} buket", parameter.get("OutputBucket"));
 
 			events
-					.keyBy(TripEvent::getPickupLocationId)
+//					.keyBy(TripEvent::getPickupLocationId)
 					.addSink(getS3Sink(parameter))
 					.name("S3 sink");
 		}
@@ -134,7 +145,7 @@ public class StreamingEtl {
 		}
 
 		if (!(parameter.has("OutputDiscarding") || parameter.has("OutputBucket") || parameter.has("OutputElasticsearchEndpoint") || (parameter.has("OutputKafkaBootstrapServers") && parameter.has("OutputKafkaTopic")) || parameter.has("OutputKinesisStream"))) {
-			throw new RuntimeException("Missing runtime parameters: Specify 'OutputBucket' or 'OutputElasticsearchEndpoint' or ('OutputKafkaBootstrapServers' and 'OutputKafkaTopic') as a parameters to the Flink job");
+			throw new RuntimeException("Missing runtime parameters: Specify 'OutputDiscarding' or 'OutputBucket' or 'OutputElasticsearchEndpoint' or ('OutputKafkaBootstrapServers' and 'OutputKafkaTopic') as a parameters to the Flink job");
 		}
 
 		env.execute();
@@ -223,7 +234,7 @@ public class StreamingEtl {
 							}
 					)
 					.withBucketAssigner(new TripEventBucketAssigner(prefix))
-					.withRollingPolicy(DefaultRollingPolicy.create().build())
+					.withRollingPolicy(DefaultRollingPolicy.builder().build())
 					.build();
 		}
 	}
