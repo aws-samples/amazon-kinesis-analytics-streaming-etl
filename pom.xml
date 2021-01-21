@@ -31,7 +31,7 @@ This file has been modified to include additional dependencies.
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<flink.version>1.11.3</flink.version>
-		<java.version>1.11</java.version>
+		<java.version>11</java.version>
 		<scala.binary.version>2.11</scala.binary.version>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
@@ -211,6 +211,7 @@ This file has been modified to include additional dependencies.
 							<goal>shade</goal>
 						</goals>
 						<configuration>
+							<createDependencyReducedPom>false</createDependencyReducedPom>
 							<artifactSet>
 								<excludes>
 									<exclude>org.apache.flink:force-shading</exclude>
