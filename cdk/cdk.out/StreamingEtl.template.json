@@ -3276,7 +3276,7 @@
         "Fn::Join": [
           "",
           [
-            "java -jar /tmp/amazon-kinesis-replay-1.0-SNAPSHOT.jar -streamName ",
+            "java -jar /tmp/amazon-kinesis-replay-*.jar -streamName ",
             {
               "Ref": "InputStreamCFB159EA"
             },

@@ -222,7 +222,7 @@ export class StreamingEtl extends cdk.Stack {
     
     instance.addDependsOn(kdaApp);
 
-    new cdk.CfnOutput(this, 'ReplayCommand', { value: `java -jar /tmp/amazon-kinesis-replay-1.0-SNAPSHOT.jar -streamName ${stream.streamName} -noWatermark -objectPrefix artifacts/kinesis-analytics-taxi-consumer/taxi-trips-partitioned.json.lz4/dropoff_year=2018/ -speedup 3600` });
+    new cdk.CfnOutput(this, 'ReplayCommand', { value: `java -jar /tmp/amazon-kinesis-replay-*.jar -streamName ${stream.streamName} -noWatermark -objectPrefix artifacts/kinesis-analytics-taxi-consumer/taxi-trips-partitioned.json.lz4/dropoff_year=2018/ -speedup 3600` });
     new cdk.CfnOutput(this, 'ConnectToInstance', { value: `https://console.aws.amazon.com/systems-manager/session-manager/${instance.ref}`});
 
 
