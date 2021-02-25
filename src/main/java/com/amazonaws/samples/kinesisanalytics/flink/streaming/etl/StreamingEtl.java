@@ -107,7 +107,7 @@ public class StreamingEtl {
 			LOG.info("Writing to {} buket", parameter.get("OutputBucket"));
 
 			events
-//					.keyBy(TripEvent::getPickupLocationId)
+					.keyBy(TripEvent::getPickupLocationId)
 					.addSink(getS3Sink(parameter))
 					.name("S3 sink");
 		}
