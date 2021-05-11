@@ -1,5 +1,5 @@
 {
-  "Description": "Creates a sample streaming ETL pipeline based on Apache Flink and Amazon Kinesis Data Analytics that reads data from a Kinesis data stream and persists it to Amazon S3 (shausma-kda-streaming-etl-2021-02-08)",
+  "Description": "Creates a sample streaming ETL pipeline based on Apache Flink and Amazon Kinesis Data Analytics that reads data from a Kinesis data stream and persists it to Amazon S3 (shausma-kda-streaming-etl-2021-05-11)",
   "Resources": {
     "Bucket83908E77": {
       "Type": "AWS::S3::Bucket",
@@ -3248,7 +3248,7 @@
     "CDKMetadata": {
       "Type": "AWS::CDK::Metadata",
       "Properties": {
-        "Modules": "aws-cdk=1.88.0,@aws-cdk/assets=1.85.0,@aws-cdk/aws-applicationautoscaling=1.85.0,@aws-cdk/aws-autoscaling=1.85.0,@aws-cdk/aws-autoscaling-common=1.85.0,@aws-cdk/aws-autoscaling-hooktargets=1.85.0,@aws-cdk/aws-cloudformation=1.85.0,@aws-cdk/aws-cloudwatch=1.85.0,@aws-cdk/aws-codebuild=1.85.0,@aws-cdk/aws-codecommit=1.85.0,@aws-cdk/aws-codeguruprofiler=1.85.0,@aws-cdk/aws-codepipeline=1.85.0,@aws-cdk/aws-codepipeline-actions=1.85.0,@aws-cdk/aws-ec2=1.85.0,@aws-cdk/aws-ecr=1.85.0,@aws-cdk/aws-ecr-assets=1.85.0,@aws-cdk/aws-ecs=1.85.0,@aws-cdk/aws-elasticloadbalancingv2=1.85.0,@aws-cdk/aws-events=1.85.0,@aws-cdk/aws-events-targets=1.85.0,@aws-cdk/aws-iam=1.85.0,@aws-cdk/aws-kinesis=1.85.0,@aws-cdk/aws-kinesisanalytics=1.85.0,@aws-cdk/aws-kms=1.85.0,@aws-cdk/aws-lambda=1.85.0,@aws-cdk/aws-logs=1.85.0,@aws-cdk/aws-s3=1.85.0,@aws-cdk/aws-s3-assets=1.85.0,@aws-cdk/aws-servicediscovery=1.85.0,@aws-cdk/aws-sns=1.85.0,@aws-cdk/aws-sns-subscriptions=1.85.0,@aws-cdk/aws-sqs=1.85.0,@aws-cdk/aws-ssm=1.85.0,@aws-cdk/cloud-assembly-schema=1.85.0,@aws-cdk/core=1.85.0,@aws-cdk/custom-resources=1.85.0,@aws-cdk/cx-api=1.85.0,@aws-cdk/region-info=1.85.0,jsii-runtime=node.js/v15.8.0"
+        "Analytics": "v2:deflate64:H4sIAAAAAAAAE2VS2W7bMBD8lr4zTJwAfa7rIgcQIIJdOM8ram3TprgCjxoGwX8vD1nK8SLNzg6H5CwXfHH3wO9+/IKzvRHd6TYIMsjDxoE4sRVp64wXjq12+s27wRe0RkveCMw4STrpJGn2kW3AQI8OTWTZONgHHn57ccKyvqLIFPRtBzw8ei2KRepdcWQSeh7WpIph+TekpLgU/wm9pBOCFtgY2kmFkQlFvtuR6SHb8JDP6K2jfj7fl3Kn30G66SLPoDv1nU7O1GHrpep4aOSASuq86xFrPCOssmHsz8oiGXFkp/S10uacDUKfmxWlUGif+FfaPxnyQ+5MOIFZPxWTG2hQFyeFLZdeDkPKqISwvWefiVXO6B2cOCSXvdT7t6HqIkNxz8N2EHnFtlmxxrdp1ca3us5uRmvyDv9CW7Oq/MwtrSUh4TrW0qjzSq8iKZ/A4Rku4zZjtXTp2R161I5d58o2KLyR7jLF8Y24SsfZn/O9ePgD9tASmC5LpiLGyHQaED/a23+Ln3yR3v7RSnljvHayR76u///wGo47GAMAAA=="
       },
       "Metadata": {
         "aws:cdk:path": "StreamingEtl/CDKMetadata/Default"
@@ -3356,6 +3356,14 @@
                 {
                   "Ref": "AWS::Region"
                 },
+                "af-south-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
                 "ap-east-1"
               ]
             },
@@ -3422,14 +3430,6 @@
                 },
                 "cn-northwest-1"
               ]
-            },
-            {
-              "Fn::Equals": [
-                {
-                  "Ref": "AWS::Region"
-                },
-                "eu-central-1"
-              ]
             }
           ]
         },
@@ -3440,7 +3440,23 @@
                 {
                   "Ref": "AWS::Region"
                 },
+                "eu-central-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
                 "eu-north-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "eu-south-1"
               ]
             },
             {
@@ -3498,7 +3514,11 @@
                 },
                 "us-east-2"
               ]
-            },
+            }
+          ]
+        },
+        {
+          "Fn::Or": [
             {
               "Fn::Equals": [
                 {
