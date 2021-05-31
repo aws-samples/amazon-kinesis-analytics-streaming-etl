@@ -1,9 +1,18 @@
 {
-  "Description": "Creates a sample streaming ETL pipeline based on Apache Flink and Amazon Kinesis Data Analytics that reads data from a Kinesis data stream and persists it to Amazon S3 (shausma-kda-streaming-etl-2021-05-11)",
+  "Description": "Creates a sample streaming ETL pipeline based on Apache Flink and Amazon Kinesis Data Analytics that reads data from a Kinesis data stream and persists it to Amazon S3 (shausma-kda-streaming-etl-2021-05-31)",
   "Resources": {
     "Bucket83908E77": {
       "Type": "AWS::S3::Bucket",
       "Properties": {
+        "BucketEncryption": {
+          "ServerSideEncryptionConfiguration": [
+            {
+              "ServerSideEncryptionByDefault": {
+                "SSEAlgorithm": "AES256"
+              }
+            }
+          ]
+        },
         "LifecycleConfiguration": {
           "Rules": [
             {
@@ -3248,7 +3257,7 @@
     "CDKMetadata": {
       "Type": "AWS::CDK::Metadata",
       "Properties": {
-        "Analytics": "v2:deflate64:H4sIAAAAAAAAE2VS2W7bMBD8lr4zTJwAfa7rIgcQIIJdOM8ram3TprgCjxoGwX8vD1nK8SLNzg6H5CwXfHH3wO9+/IKzvRHd6TYIMsjDxoE4sRVp64wXjq12+s27wRe0RkveCMw4STrpJGn2kW3AQI8OTWTZONgHHn57ccKyvqLIFPRtBzw8ei2KRepdcWQSeh7WpIph+TekpLgU/wm9pBOCFtgY2kmFkQlFvtuR6SHb8JDP6K2jfj7fl3Kn30G66SLPoDv1nU7O1GHrpep4aOSASuq86xFrPCOssmHsz8oiGXFkp/S10uacDUKfmxWlUGif+FfaPxnyQ+5MOIFZPxWTG2hQFyeFLZdeDkPKqISwvWefiVXO6B2cOCSXvdT7t6HqIkNxz8N2EHnFtlmxxrdp1ca3us5uRmvyDv9CW7Oq/MwtrSUh4TrW0qjzSq8iKZ/A4Rku4zZjtXTp2R161I5d58o2KLyR7jLF8Y24SsfZn/O9ePgD9tASmC5LpiLGyHQaED/a23+Ln3yR3v7RSnljvHayR76u///wGo47GAMAAA=="
+        "Analytics": "v2:deflate64:H4sIAAAAAAAAE2VSy27bMBD8ltwZJnaBnOO4aFqgQAS7cM4ram2vTZECHzEMgv9ePmQpbS7i7OxwSM5qwRePT3xx9wwXey+680MQ2iAPWwfizNZaWWe8cGy9V2/eDb6gDVrtjcCMk6QjR1qxz2wDBnp0aCLLxsF+4+HFizOW/RVFJqFvO+Dhh1eiWKTeDUdG0POw0bIYlrXRksS1+E/oV7ohKIGN0XuSGJmQ2nd7bXrINjzkO3rrdD/f779yr96B3PSQn6A6+ZVOzrrD1pPseGhoQEkqn3rCGs8Iq2wY+7OySEYc2Tl9Ldmcs0Hoc7OiFIo+JP63Prwa7YfcmXACs34qJjdQIK+OhC2PXg1DyqiEsFuyf4l1zugdnDgmlwOpw9tQdZGhWPKwG0TesWvWrPFt2rX1raqzm9FGe4d/oK1ZVX7mVtZqQXAba2nUeaW/IilfweEFruMxY7Vy6bc79qgcu82VbVF4Q+46xfGFuEnH2V/yu3j4DvbYajBdlkxFjJGpNCB+sg8fiye+5I93J0t0b7xy1CPf1PUvdTJfRxgDAAA="
       },
       "Metadata": {
         "aws:cdk:path": "StreamingEtl/CDKMetadata/Default"

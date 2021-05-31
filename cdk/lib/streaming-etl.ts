@@ -13,6 +13,7 @@ import { RetentionDays } from '@aws-cdk/aws-logs';
 import { InstanceType, InstanceClass, InstanceSize, AmazonLinuxImage, UserData, AmazonLinuxGeneration } from '@aws-cdk/aws-ec2';
 import { BuildArtifacts } from './build-artifacts';
 import { EmptyBucketOnDelete } from './empty-bucket';
+import { BucketEncryption } from '@aws-cdk/aws-s3';
 
 
 export class StreamingEtl extends cdk.Stack {
@@ -25,6 +26,7 @@ export class StreamingEtl extends cdk.Stack {
 
     const bucket = new s3.Bucket(this, 'Bucket', {
       versioned: true,
+      encryption: BucketEncryption.S3_MANAGED,
       removalPolicy: RemovalPolicy.DESTROY,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
       metrics: [{
