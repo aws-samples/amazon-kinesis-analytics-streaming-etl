@@ -66,7 +66,7 @@ Apache Kafka and Amazon MSK clusters can be used as sources and sinks by includi
 - **InputKafkaBootstrapServers**: comma separated list of broker DNS names and port pairs for the initial connection
 - **InputKafkaTopic**: the name of the topic to read data from
 - **OutputKafkaBootstrapServers**: comma separated list of broker DNS names and port pairs for the initial connection
-- **OutputKafkaTopic**: the name of the topic to read data from
+- **OutputKafkaTopic**: the name of the topic to write data to
 
 To access Kafka or MSK clusters, you need to configure the Kinesis Data Analytics application to connect your VPC. For details, see [Enabling VPC support](#enabling-vpc-support) below.
 
