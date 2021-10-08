@@ -1,5 +1,5 @@
 {
-  "Description": "Creates a sample streaming ETL pipeline based on Apache Flink and Amazon Kinesis Data Analytics that reads data from a Kinesis data stream and persists it to Amazon S3 (shausma-kda-streaming-etl-2021-05-31)",
+  "Description": "Creates a sample streaming ETL pipeline based on Apache Flink and Amazon Kinesis Data Analytics that reads data from a Kinesis data stream and persists it to Amazon S3 (shausma-kda-streaming-etl-2021-10-08)",
   "Resources": {
     "Bucket83908E77": {
       "Type": "AWS::S3::Bucket",
@@ -925,7 +925,7 @@
                           "Arn"
                         ]
                       },
-                      "/*"
+                      "/sources/amazon-kinesis-replay-release-0.1.1.zip"
                     ]
                   ]
                 }
@@ -1975,7 +1975,7 @@
                           "Arn"
                         ]
                       },
-                      "/*"
+                      "/sources/amazon-kinesis-analytics-streaming-etl-release-0.1.1.zip"
                     ]
                   ]
                 }
@@ -3257,7 +3257,7 @@
     "CDKMetadata": {
       "Type": "AWS::CDK::Metadata",
       "Properties": {
-        "Analytics": "v2:deflate64:H4sIAAAAAAAAE2VSy27bMBD8ltwZJnaBnOO4aFqgQAS7cM4ram2vTZECHzEMgv9ePmQpbS7i7OxwSM5qwRePT3xx9wwXey+680MQ2iAPWwfizNZaWWe8cGy9V2/eDb6gDVrtjcCMk6QjR1qxz2wDBnp0aCLLxsF+4+HFizOW/RVFJqFvO+Dhh1eiWKTeDUdG0POw0bIYlrXRksS1+E/oV7ohKIGN0XuSGJmQ2nd7bXrINjzkO3rrdD/f779yr96B3PSQn6A6+ZVOzrrD1pPseGhoQEkqn3rCGs8Iq2wY+7OySEYc2Tl9Ldmcs0Hoc7OiFIo+JP63Prwa7YfcmXACs34qJjdQIK+OhC2PXg1DyqiEsFuyf4l1zugdnDgmlwOpw9tQdZGhWPKwG0TesWvWrPFt2rX1raqzm9FGe4d/oK1ZVX7mVtZqQXAba2nUeaW/IilfweEFruMxY7Vy6bc79qgcu82VbVF4Q+46xfGFuEnH2V/yu3j4DvbYajBdlkxFjJGpNCB+sg8fiye+5I93J0t0b7xy1CPf1PUvdTJfRxgDAAA="
+        "Analytics": "v2:deflate64:H4sIAAAAAAAA/2VT207jMBD9ln03hhaJZ0pXC0hIRC0qzxNn2k7r2JEvVJWVf8eXNIHtS3xm5syxfcaZ8dn8gd/9eYSTvRHN8TYIbZCHtQNxZEutrDNeOLbcqnfvOp/RCq32RmDCkdKQI63Yz2wFBlp0aHqWhIO95+HJiyPm/gGV5Qks9kxCWzfAwz+vRFaLtAvuGUHLw0rLrJ3XSksS57zViF7jYUEJrIzekoyiQmrfbLVpIcnwkI7rrdPtdNT/wq36BHLjnV5ANfI6HZV1g7Un2fBQUYeSVNr1gMWpARZaN9QnZqYMuGfH+LVkk+UGoU3FgqIpehfzb3r3bLTvUmXEEUz8MRjVQIE8OxI2X3rRddGjbMJmzn4nlsmjT3BiH1V2pHbvXeH1DMWch00nUsemWrLK17Fr7WtVxjihlfYOP6AuXpX8lFtYqwXBZay5UOYVH0hkPoPDE5yHbYZo4eIL3LeoHLvMla1ReEPuPNpxlbhQh9mf0r14+At2X2swTaKMQd/3TMUB8YO9/Zo98Nld/A8OlujGeOWoRb4q6zexwkm+JAMAAA=="
       },
       "Metadata": {
         "aws:cdk:path": "StreamingEtl/CDKMetadata/Default"
