@@ -35,7 +35,7 @@ This file has been modified to include additional dependencies.
 		<scala.binary.version>2.11</scala.binary.version>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
-		<log4j.version>2.15.0</log4j.version>
+		<log4j.version>2.16.0</log4j.version>
 
 		<avro.version>1.8.2</avro.version>
 		<flink.format.parquet.version>1.10.0</flink.format.parquet.version>
