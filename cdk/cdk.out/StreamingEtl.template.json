@@ -1,5 +1,5 @@
 {
-  "Description": "Creates a sample streaming ETL pipeline based on Apache Flink and Amazon Kinesis Data Analytics that reads data from a Kinesis data stream and persists it to Amazon S3 (shausma-kda-streaming-etl-2021-10-08)",
+  "Description": "Creates a sample streaming ETL pipeline based on Apache Flink and Amazon Kinesis Data Analytics that reads data from a Kinesis data stream and persists it to Amazon S3 (shausma-kda-streaming-etl-2022-03-14)",
   "Resources": {
     "Bucket83908E77": {
       "Type": "AWS::S3::Bucket",
@@ -264,7 +264,7 @@
         },
         "Environment": {
           "Variables": {
-            "url": "https://github.com/aws-samples/amazon-kinesis-replay/archive/release-0.1.1.zip",
+            "url": "https://github.com/aws-samples/amazon-kinesis-replay/archive/refs/tags/release-0.1.1.zip",
             "bucket": {
               "Ref": "Bucket83908E77"
             },
@@ -484,6 +484,9 @@
         "Source": {
           "BuildSpec": "{\n  \"version\": \"0.2\",\n  \"phases\": {\n    \"build\": {\n      \"commands\": [\n        \"cd amazon-kinesis-replay-release-0.1.1\",\n        \"mvn clean package -B\"\n      ]\n    }\n  },\n  \"artifacts\": {\n    \"files\": [\n      \"target/amazon-kinesis-replay-*.jar\"\n    ],\n    \"discard-paths\": false,\n    \"base-directory\": \"amazon-kinesis-replay-release-0.1.1\"\n  }\n}",
           "Type": "CODEPIPELINE"
+        },
+        "Cache": {
+          "Type": "NO_CACHE"
         },
         "EncryptionKey": "alias/aws/s3"
       },
@@ -1314,7 +1317,7 @@
         },
         "Environment": {
           "Variables": {
-            "url": "https://github.com/aws-samples/amazon-kinesis-analytics-streaming-etl/archive/release-0.1.1.zip",
+            "url": "https://github.com/aws-samples/amazon-kinesis-analytics-streaming-etl/archive/refs/tags/release-0.1.1.zip",
             "bucket": {
               "Ref": "Bucket83908E77"
             },
@@ -1534,6 +1537,9 @@
         "Source": {
           "BuildSpec": "{\n  \"version\": \"0.2\",\n  \"phases\": {\n    \"build\": {\n      \"commands\": [\n        \"cd amazon-kinesis-analytics-streaming-etl-release-0.1.1\",\n        \"mvn clean package -B\"\n      ]\n    }\n  },\n  \"artifacts\": {\n    \"files\": [\n      \"target/amazon-kinesis-analytics-streaming-etl-*.jar\"\n    ],\n    \"discard-paths\": false,\n    \"base-directory\": \"amazon-kinesis-analytics-streaming-etl-release-0.1.1\"\n  }\n}",
           "Type": "CODEPIPELINE"
+        },
+        "Cache": {
+          "Type": "NO_CACHE"
         },
         "EncryptionKey": "alias/aws/s3"
       },
@@ -2279,8 +2285,8 @@
     "InputStreamCFB159EA": {
       "Type": "AWS::Kinesis::Stream",
       "Properties": {
-        "ShardCount": 16,
         "RetentionPeriodHours": 24,
+        "ShardCount": 16,
         "StreamEncryption": {
           "Fn::If": [
             "AwsCdkKinesisEncryptedStreamsUnsupportedRegions",
@@ -2292,6 +2298,9 @@
               "KeyId": "alias/aws/kinesis"
             }
           ]
+        },
+        "StreamModeDetails": {
+          "StreamMode": "PROVISIONED"
         }
       },
       "Metadata": {
@@ -2386,7 +2395,9 @@
                 "kinesis:GetRecords",
                 "kinesis:GetShardIterator",
                 "kinesis:ListShards",
-                "kinesis:SubscribeToShard"
+                "kinesis:SubscribeToShard",
+                "kinesis:DescribeStream",
+                "kinesis:ListStreams"
               ],
               "Effect": "Allow",
               "Resource": {
@@ -2886,6 +2897,8 @@
                 "kinesis:GetShardIterator",
                 "kinesis:ListShards",
                 "kinesis:SubscribeToShard",
+                "kinesis:DescribeStream",
+                "kinesis:ListStreams",
                 "kinesis:PutRecord",
                 "kinesis:PutRecords"
               ],
@@ -3257,7 +3270,7 @@
     "CDKMetadata": {
       "Type": "AWS::CDK::Metadata",
       "Properties": {
-        "Analytics": "v2:deflate64:H4sIAAAAAAAA/2VT207jMBD9ln03hhaJZ0pXC0hIRC0qzxNn2k7r2JEvVJWVf8eXNIHtS3xm5syxfcaZ8dn8gd/9eYSTvRHN8TYIbZCHtQNxZEutrDNeOLbcqnfvOp/RCq32RmDCkdKQI63Yz2wFBlp0aHqWhIO95+HJiyPm/gGV5Qks9kxCWzfAwz+vRFaLtAvuGUHLw0rLrJ3XSksS57zViF7jYUEJrIzekoyiQmrfbLVpIcnwkI7rrdPtdNT/wq36BHLjnV5ANfI6HZV1g7Un2fBQUYeSVNr1gMWpARZaN9QnZqYMuGfH+LVkk+UGoU3FgqIpehfzb3r3bLTvUmXEEUz8MRjVQIE8OxI2X3rRddGjbMJmzn4nlsmjT3BiH1V2pHbvXeH1DMWch00nUsemWrLK17Fr7WtVxjihlfYOP6AuXpX8lFtYqwXBZay5UOYVH0hkPoPDE5yHbYZo4eIL3LeoHLvMla1ReEPuPNpxlbhQh9mf0r14+At2X2swTaKMQd/3TMUB8YO9/Zo98Nld/A8OlujGeOWoRb4q6zexwkm+JAMAAA=="
+        "Analytics": "v2:deflate64:H4sIAAAAAAAA/2VT207jMBD9ln03hsJq4XFLEbDSSkQtKs8TZ9q6dTyRL1SVlX/HlzTh8hKfmTlzbJ9xZnz2+45f/foLR3shmsNlEGSQh5UDcWAL0tYZLxxbbPSLd53PaImWvBGYcKQ00knS7HO2AgMtOjQ9S8LB3vBw78UBc/+AynIPFnumoK0b4OHRa5HVIu2Meyah5WFJKmvntSIlxSlvNaJ/8bCgBVaGNlJFUaHINxsyLSQZHtJxvXXUTkf9Fm70G0g33ukZdKN+pqMyNVh7qRoeKtmhkjrtusfi1AALrRvqEzNTBtyzQ/xaaZPlBqFNxYKiKbSN+f+0fTLku1QZcQQTfwxGNdCgTk4Kmy8977roUTZhfc2+JhbJozdwYhdVtlJvX7rC6xmKax7WnUgd62rBKl/HrpWvdRnjhJbkHb5CXbwq+Sk3t5aEhPNYc6HMKz6QyHwCh0c4DdsM0dzFF7hrUTt2nitbofBGutNox4/EmTrM/pjuxcMD2F1NYJpEGYO+75mOA+J7e/k+u+V/4m+wt1JeGK+dbJEvy/oBdZfNJCMDAAA="
       },
       "Metadata": {
         "aws:cdk:path": "StreamingEtl/CDKMetadata/Default"

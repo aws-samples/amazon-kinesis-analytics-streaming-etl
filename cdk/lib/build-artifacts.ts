@@ -21,7 +21,7 @@ export class BuildArtifacts extends cdk.Construct {
 
         const producer = new BuildPipeline(this, 'KinesisReplayBuildPipeline', {
             bucket: props.bucket,
-            github: `https://github.com/aws-samples/amazon-kinesis-replay/archive/${props.kinesisReplayVersion}.zip`,
+            github: `https://github.com/aws-samples/amazon-kinesis-replay/archive/refs/tags/${props.kinesisReplayVersion}.zip`,
             extract: true
         });
 
@@ -29,7 +29,7 @@ export class BuildArtifacts extends cdk.Construct {
     
         const consumer = new BuildPipeline(this, 'FlinkConsumer', {
           bucket: props.bucket,
-          github: `https://github.com/aws-samples/amazon-kinesis-analytics-streaming-etl/archive/${props.flinkConsumerVersion}.zip`, 
+          github: `https://github.com/aws-samples/amazon-kinesis-analytics-streaming-etl/archive/refs/tags/${props.flinkConsumerVersion}.zip`, 
           extract: true,
         });
 

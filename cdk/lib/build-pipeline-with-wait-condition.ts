@@ -42,7 +42,8 @@ export class BuildPipeline extends cdk.Construct {
     const lambdaSource = fs.readFileSync('lambda/build-pipeline-helper.py').toString();
 
     if ('github' in props) {
-      const match = props.github.match(/https:\/\/github.com\/[^\/]+\/([^\/]+)\/archive\/([^\/]+)\.zip/);
+      const match = props.github.match(/https:\/\/github.com\/[^\/]+\/([^\/]+)\/archive\/refs\/tags\/([^\/]+)\.zip/);
+
 
       if (! match) {
         throw Error(`Expecting valid GitHub archive url, found: ${props.github}`);
