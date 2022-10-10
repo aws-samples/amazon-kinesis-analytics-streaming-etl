@@ -1,23 +1,37 @@
-import cdk = require('@aws-cdk/core');
-import s3 = require('@aws-cdk/aws-s3');
-import ec2 = require('@aws-cdk/aws-ec2');
-import iam = require('@aws-cdk/aws-iam');
-import logs = require('@aws-cdk/aws-logs');
-import kds = require('@aws-cdk/aws-kinesis');
-import kda = require('@aws-cdk/aws-kinesisanalytics');
-import cloudwatch = require('@aws-cdk/aws-cloudwatch');
+import s3 = require('aws-cdk-lib/aws-s3');
+import ec2 = require('aws-cdk-lib/aws-ec2');
+import iam = require('aws-cdk-lib/aws-iam');
+import logs = require('aws-cdk-lib/aws-logs');
+import kds = require('aws-cdk-lib/aws-kinesis');
+import kda = require('aws-cdk-lib/aws-kinesisanalytics');
+import cloudwatch = require('aws-cdk-lib/aws-cloudwatch');
 
-import { Metric } from '@aws-cdk/aws-cloudwatch';
-import { RemovalPolicy, Duration } from '@aws-cdk/core';
-import { RetentionDays } from '@aws-cdk/aws-logs';
-import { InstanceType, InstanceClass, InstanceSize, AmazonLinuxImage, UserData, AmazonLinuxGeneration } from '@aws-cdk/aws-ec2';
+import {
+  Aws,
+  CfnOutput,
+  Fn,
+  Stack,
+  StackProps
+} from 'aws-cdk-lib'
+import { Metric } from 'aws-cdk-lib/aws-cloudwatch';
+import { RemovalPolicy, Duration } from 'aws-cdk-lib';
+import { RetentionDays } from 'aws-cdk-lib/aws-logs';
+import {
+    InstanceType,
+    InstanceClass,
+    InstanceSize,
+    AmazonLinuxImage,
+    UserData,
+    AmazonLinuxGeneration
+} from 'aws-cdk-lib/aws-ec2';
 import { BuildArtifacts } from './build-artifacts';
 import { EmptyBucketOnDelete } from './empty-bucket';
-import { BucketEncryption } from '@aws-cdk/aws-s3';
+import { BucketEncryption } from 'aws-cdk-lib/aws-s3';
+import { Construct } from 'constructs'
 
 
-export class StreamingEtl extends cdk.Stack {
-  constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
+export class StreamingEtl extends Stack {
+  constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
     const synthDate = new Date().toISOString().split('T')[0];
@@ -41,7 +55,7 @@ export class StreamingEtl extends cdk.Stack {
       bucket: bucket
     });
 
-    new cdk.CfnOutput(this, `OutputBucket`, { value: `https://console.aws.amazon.com/s3/buckets/${bucket.bucketName}/streaming-etl-output/` });
+    new CfnOutput(this, `OutputBucket`, { value: `https://console.aws.amazon.com/s3/buckets/${bucket.bucketName}/streaming-etl-output/` });
 
 
 
@@ -67,7 +81,7 @@ export class StreamingEtl extends cdk.Stack {
       removalPolicy: RemovalPolicy.DESTROY
     });
 
-    const logStreamArn = `arn:${cdk.Aws.PARTITION}:logs:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:log-group:${logGroup.logGroupName}:log-stream:${logStream.logStreamName}`;
+    const logStreamArn = `arn:${Aws.PARTITION}:logs:${Aws.REGION}:${Aws.ACCOUNT_ID}:log-group:${logGroup.logGroupName}:log-stream:${logStream.logStreamName}`;
 
     const kdaRole = new iam.Role(this, 'KdaRole', {
       assumedBy: new iam.ServicePrincipal('kinesisanalytics.amazonaws.com'),
@@ -90,7 +104,7 @@ export class StreamingEtl extends cdk.Stack {
       actions: [ 'logs:DescribeLogStreams', 'logs:DescribeLogGroups' ],
       resources: [
         logGroup.logGroupArn,
-        `arn:${cdk.Aws.PARTITION}:logs:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:log-group:*`
+        `arn:${Aws.PARTITION}:logs:${Aws.REGION}:${Aws.ACCOUNT_ID}:log-group:*`
       ]
     }));
 
@@ -103,7 +117,7 @@ export class StreamingEtl extends cdk.Stack {
     const kdaApp = new kda.CfnApplicationV2(this, 'KdaApplication', {
       runtimeEnvironment: 'FLINK-1_11',
       serviceExecutionRole: kdaRole.roleArn,
-      applicationName: `${cdk.Aws.STACK_NAME}`,
+      applicationName: `${Aws.STACK_NAME}`,
       applicationConfiguration: {
         environmentProperties: {
           propertyGroups: [
@@ -111,7 +125,7 @@ export class StreamingEtl extends cdk.Stack {
               propertyGroupId: 'FlinkApplicationProperties',
               propertyMap: {
                 OutputBucket: `s3://${bucket.bucketName}/streaming-etl-output/`,
-                ParquetConversion: true,
+                ParquetConversion: "true",
                 InputKinesisStream: stream.streamName
               },
             }
@@ -143,7 +157,7 @@ export class StreamingEtl extends cdk.Stack {
           codeContent: {
             s3ContentLocation: {
               bucketArn: bucket.bucketArn,
-              fileKey: 'target/amazon-kinesis-analytics-streaming-etl-1.0-SNAPSHOT.jar'        
+              fileKey: 'target/amazon-kinesis-analytics-streaming-etl-1.0-SNAPSHOT.jar'
             }
           },
           codeContentType: 'ZIPFILE'
@@ -171,7 +185,7 @@ export class StreamingEtl extends cdk.Stack {
         }
       ]
     });
-    
+
     const producerRole = new iam.Role(this, 'ReplayRole', {
       assumedBy: new iam.ServicePrincipal('ec2.amazonaws.com'),
       managedPolicies: [
@@ -195,7 +209,7 @@ export class StreamingEtl extends cdk.Stack {
 
     producerRole.addToPolicy(new iam.PolicyStatement({
       actions: [ 'kinesisanalytics:StartApplication', 'kinesisanalytics:StopApplication', 'kinesisanalytics:DescribeApplication', 'kinesisanalytics:UpdateApplication' ],
-      resources: [ `arn:${cdk.Aws.PARTITION}:kinesisanalytics:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:application/${kdaApp.applicationName}` ]
+      resources: [ `arn:${Aws.PARTITION}:kinesisanalytics:${Aws.REGION}:${Aws.ACCOUNT_ID}:application/${kdaApp.applicationName}` ]
     }));
 
     const userData = UserData.forLinux()
@@ -209,7 +223,7 @@ export class StreamingEtl extends cdk.Stack {
       machineImage: new AmazonLinuxImage({
         generation: AmazonLinuxGeneration.AMAZON_LINUX_2
       }),
-      instanceName: `${cdk.Aws.STACK_NAME}/ProducerInstance`,
+      instanceName: `${Aws.STACK_NAME}/ProducerInstance`,
       userData: userData,
       role: producerRole,
       resourceSignalTimeout: Duration.minutes(5)
@@ -218,24 +232,24 @@ export class StreamingEtl extends cdk.Stack {
     userData.addCommands(
       'yum install -y tmux jq java-11-amazon-corretto-headless',
       `aws s3 cp --recursive --no-progress --exclude '*' --include 'amazon-kinesis-replay-*.jar' 's3://${bucket.bucketName}/target/' /tmp`,
-      `aws --region ${cdk.Aws.REGION} kinesisanalyticsv2 start-application --application-name ${kdaApp.ref} --run-configuration '{ "ApplicationRestoreConfiguration": { "ApplicationRestoreType": "SKIP_RESTORE_FROM_SNAPSHOT" } }'`,
-      `/opt/aws/bin/cfn-signal -e $? --stack ${cdk.Aws.STACK_NAME} --resource ${instance.logicalId} --region ${cdk.Aws.REGION}`
+      `aws --region ${Aws.REGION} kinesisanalyticsv2 start-application --application-name ${kdaApp.ref} --run-configuration '{ "ApplicationRestoreConfiguration": { "ApplicationRestoreType": "SKIP_RESTORE_FROM_SNAPSHOT" } }'`,
+      `/opt/aws/bin/cfn-signal -e $? --stack ${Aws.STACK_NAME} --resource ${instance.logicalId} --region ${Aws.REGION}`
     );
-    
+
     instance.addDependsOn(kdaApp);
 
-    new cdk.CfnOutput(this, 'ReplayCommand', { value: `java -jar /tmp/amazon-kinesis-replay-*.jar -streamName ${stream.streamName} -noWatermark -objectPrefix artifacts/kinesis-analytics-taxi-consumer/taxi-trips-partitioned.json.lz4/dropoff_year=2018/ -speedup 3600` });
-    new cdk.CfnOutput(this, 'ConnectToInstance', { value: `https://console.aws.amazon.com/systems-manager/session-manager/${instance.ref}`});
+    new CfnOutput(this, 'ReplayCommand', { value: `java -jar /tmp/amazon-kinesis-replay-*.jar -streamName ${stream.streamName} -noWatermark -objectPrefix artifacts/kinesis-analytics-taxi-consumer/taxi-trips-partitioned.json.lz4/dropoff_year=2018/ -speedup 3600` });
+    new CfnOutput(this, 'ConnectToInstance', { value: `https://console.aws.amazon.com/systems-manager/session-manager/${instance.ref}`});
 
 
     const dashboard = new cloudwatch.Dashboard(this, 'Dashboard', {
-      dashboardName: cdk.Aws.STACK_NAME
+      dashboardName: Aws.STACK_NAME
     });
 
     const incomingRecords = new Metric({
       namespace: 'AWS/Kinesis',
       metricName: 'IncomingRecords',
-      dimensions: {
+      dimensionsMap: {
         StreamName: stream.streamName
       },
       period: Duration.minutes(1),
@@ -245,7 +259,7 @@ export class StreamingEtl extends cdk.Stack {
     const incomingBytes = new Metric({
       namespace: 'AWS/Kinesis',
       metricName: 'IncomingBytes',
-      dimensions: {
+      dimensionsMap: {
         StreamName: stream.streamName
       },
       period: Duration.minutes(1),
@@ -255,7 +269,7 @@ export class StreamingEtl extends cdk.Stack {
     const outgoingRecords = new Metric({
       namespace: 'AWS/Kinesis',
       metricName: 'GetRecords.Records',
-      dimensions: {
+      dimensionsMap: {
         StreamName: stream.streamName
       },
       period: Duration.minutes(1),
@@ -265,7 +279,7 @@ export class StreamingEtl extends cdk.Stack {
     const outgoingBytes = new Metric({
       namespace: 'AWS/Kinesis',
       metricName: 'GetRecords.Bytes',
-      dimensions: {
+      dimensionsMap: {
         StreamName: stream.streamName
       },
       period: Duration.minutes(1),
@@ -275,8 +289,8 @@ export class StreamingEtl extends cdk.Stack {
     const millisBehindLatest = new Metric({
       namespace: 'AWS/KinesisAnalytics',
       metricName: 'millisBehindLatest',
-      dimensions: {
-        Id: cdk.Fn.join('_', cdk.Fn.split('-', stream.streamName)),
+      dimensionsMap: {
+        Id: Fn.join('_', Fn.split('-', stream.streamName)),
         Application: kdaApp.ref,
         Flow: 'Input'
       },
@@ -287,7 +301,7 @@ export class StreamingEtl extends cdk.Stack {
     const bytesUploaded = new Metric({
       namespace: 'AWS/S3',
       metricName: 'BytesUploaded',
-      dimensions: {
+      dimensionsMap: {
         BucketName: bucket.bucketName,
         FilterId: 'EntireBucket'
       },
@@ -298,14 +312,14 @@ export class StreamingEtl extends cdk.Stack {
     const putRequests = new Metric({
       namespace: 'AWS/S3',
       metricName: 'PutRequests',
-      dimensions: {
+      dimensionsMap: {
         BucketName: bucket.bucketName,
         FilterId: 'EntireBucket'
       },
       period: Duration.minutes(1),
       statistic: 'sum'
     });
-    
+
 
     dashboard.addWidgets(
       new cloudwatch.GraphWidget({
@@ -370,7 +384,7 @@ export class StreamingEtl extends cdk.Stack {
       })
     );
 
-    new cdk.CfnOutput(this, 'CloudwatchDashboard', { value: `https://console.aws.amazon.com/cloudwatch/home#dashboards:name=${cdk.Aws.STACK_NAME}` });
-    new cdk.CfnOutput(this, 'CloudwatchLogsInsights', { value: `https://console.aws.amazon.com/cloudwatch/home#logs-insights:queryDetail=~(end~0~source~'${logGroup.logGroupName}~start~-3600~timeType~'RELATIVE~unit~'seconds)` });
+    new CfnOutput(this, 'CloudwatchDashboard', { value: `https://console.aws.amazon.com/cloudwatch/home#dashboards:name=${Aws.STACK_NAME}` });
+    new CfnOutput(this, 'CloudwatchLogsInsights', { value: `https://console.aws.amazon.com/cloudwatch/home#logs-insights:queryDetail=~(end~0~source~'${logGroup.logGroupName}~start~-3600~timeType~'RELATIVE~unit~'seconds)` });
   }
 }
