@@ -1,15 +1,15 @@
 import fs = require('fs');
-import cdk = require('@aws-cdk/core');
-import s3 = require('@aws-cdk/aws-s3');
-import cfn = require('@aws-cdk/aws-cloudformation');
-import lambda = require('@aws-cdk/aws-lambda');
-import codepipeline = require('@aws-cdk/aws-codepipeline');
-import codepipeline_actions = require('@aws-cdk/aws-codepipeline-actions');
-import codebuild = require('@aws-cdk/aws-codebuild');
-import { BuildSpec } from '@aws-cdk/aws-codebuild';
-import { Duration } from '@aws-cdk/core';
-import { CustomResourceProvider } from '@aws-cdk/aws-cloudformation';
-import { Repository } from '@aws-cdk/aws-codecommit';
+import s3 = require('aws-cdk-lib/aws-s3');
+import cfn = require('aws-cdk-lib/aws-cloudformation');
+import lambda = require('aws-cdk-lib/aws-lambda');
+import codepipeline = require('aws-cdk-lib/aws-codepipeline');
+import codepipeline_actions = require('aws-cdk-lib/aws-codepipeline-actions');
+import codebuild = require('aws-cdk-lib/aws-codebuild');
+
+import { BuildSpec } from 'aws-cdk-lib/aws-codebuild';
+import { Duration } from 'aws-cdk-lib';
+import { Repository } from 'aws-cdk-lib/aws-codecommit';
+import { Construct } from "constructs";
 
 export interface BuildPipelineProps {
   secondarySourceAction?: codepipeline_actions.S3SourceAction,
@@ -30,13 +30,13 @@ interface CodeCommitBuildPipelineProps extends BuildPipelineProps {
 }
 
 
-export class BuildPipeline extends cdk.Construct {
+export class BuildPipeline extends Construct {
   buildSuccessWaitCondition: cfn.CfnWaitCondition;
 
-  constructor(scope: cdk.Construct, id: string, props: GithupBuildPipelineProps | CodeCommitBuildPipelineProps) {
+  constructor(scope: Construct, id: string, props: GithupBuildPipelineProps | CodeCommitBuildPipelineProps) {
     super(scope, id);
 
-    var sourceAction, buildSpec;
+    let sourceAction, buildSpec;
 
     const sourceOutput = new codepipeline.Artifact();
     const lambdaSource = fs.readFileSync('lambda/build-pipeline-helper.py').toString();
@@ -54,9 +54,9 @@ export class BuildPipeline extends cdk.Construct {
       const key = `sources/${directory}.zip`;
 
       const downloadLambda =  new lambda.Function(this, 'DownloadLambda', {
-        runtime: lambda.Runtime.PYTHON_3_7,
+        runtime: lambda.Runtime.PYTHON_3_9,
         timeout: Duration.seconds(30),
-        code: lambda.Code.inline(lambdaSource),
+        code: lambda.Code.fromInline(lambdaSource),
         handler: 'index.download_sources',
         environment: {
           url: props.github,
@@ -67,8 +67,8 @@ export class BuildPipeline extends cdk.Construct {
 
       props.bucket.grantPut(downloadLambda);
 
-      new cfn.CustomResource(this, 'DownloadLambdaResource', {
-        provider: CustomResourceProvider.lambda(downloadLambda)
+      new cfn.CfnCustomResource(this, 'DownloadLambdaResource', {
+        serviceToken: downloadLambda.functionArn
       });
 
 
@@ -104,7 +104,7 @@ export class BuildPipeline extends cdk.Construct {
 
       const cfnId = artifact.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join('');
 
-      // new cdk.CfnOutput(this, `${cfnId}CopyCommand`, { value: `aws s3 cp --recursive --exclude '*' --include '${artifact}-*.jar' 's3://${props.bucket.bucketName}/target/' .` });  
+      // new cdk.CfnOutput(this, `${cfnId}CopyCommand`, { value: `aws s3 cp --recursive --exclude '*' --include '${artifact}-*.jar' 's3://${props.bucket.bucketName}/target/' .` });
     } else {
       sourceAction = new codepipeline_actions.CodeCommitSourceAction({
         actionName: 'SourceAction',
@@ -119,7 +119,7 @@ export class BuildPipeline extends cdk.Construct {
 
     const project = new codebuild.PipelineProject(this, 'CodebuildProject', {
       environment: {
-        buildImage: codebuild.LinuxBuildImage.UBUNTU_14_04_OPEN_JDK_11
+        buildImage: codebuild.LinuxBuildImage.STANDARD_5_0
       },
       buildSpec: buildSpec
     });
@@ -142,7 +142,7 @@ export class BuildPipeline extends cdk.Construct {
       extract: props.extract,
       objectKey: props.objectKey
     });
-    
+
 
     const waitHandle = new cfn.CfnWaitConditionHandle(this, 'WaitHandle');
 
@@ -154,8 +154,8 @@ export class BuildPipeline extends cdk.Construct {
 
 
     const notifyLambda =  new lambda.Function(this, 'NotifyLambda', {
-      runtime: lambda.Runtime.PYTHON_3_7,
-      code: lambda.Code.inline(lambdaSource),
+      runtime: lambda.Runtime.PYTHON_3_9,
+      code: lambda.Code.fromInline(lambdaSource),
       timeout: Duration.seconds(10),
       handler: 'index.notify_build_success',
       environment: {
@@ -168,7 +168,7 @@ export class BuildPipeline extends cdk.Construct {
       lambda: notifyLambda,
       runOrder: 2
     });
-    
+
 
     new codepipeline.Pipeline(this, 'CodePipeline', {
       stages: [

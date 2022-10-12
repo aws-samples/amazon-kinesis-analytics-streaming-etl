@@ -1,10 +1,7 @@
-import cdk = require('@aws-cdk/core');
-import s3 = require('@aws-cdk/aws-s3');
-import cfn = require('@aws-cdk/aws-cloudformation');
-import codepipeline = require('@aws-cdk/aws-codepipeline');
-import codepipeline_actions = require('@aws-cdk/aws-codepipeline-actions');
-import { BuildSpec } from '@aws-cdk/aws-codebuild';
+import s3 = require('aws-cdk-lib/aws-s3');
+import cfn = require('aws-cdk-lib/aws-cloudformation');
 import { BuildPipeline } from './build-pipeline-with-wait-condition';
+import { Construct} from "constructs";
 
 export interface BuildArtifactsProps {
   bucket: s3.Bucket,
@@ -12,11 +9,11 @@ export interface BuildArtifactsProps {
   kinesisReplayVersion: string
 }
 
-export class BuildArtifacts extends cdk.Construct {
+export class BuildArtifacts extends Construct {
     consumerBuildSuccessWaitCondition: cfn.CfnWaitCondition;
     producerBuildSuccessWaitCondition: cfn.CfnWaitCondition;
   
-    constructor(scope: cdk.Construct, id: string, props: BuildArtifactsProps) {
+    constructor(scope: Construct, id: string, props: BuildArtifactsProps) {
         super(scope, id);
 
         const producer = new BuildPipeline(this, 'KinesisReplayBuildPipeline', {
