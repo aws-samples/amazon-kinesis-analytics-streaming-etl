@@ -1,4 +1,8 @@
-## Streaming ETL with Apache Flink and Amazon Kinesis Data Analytics
+## Streaming ETL with Apache Flink and Amazon Managed Service for Apache Flink
+
+--------
+>  #### 🚨 August 30, 2023: Amazon Kinesis Data Analytics has been renamed to [Amazon Managed Service for Apache Flink](https://aws.amazon.com/managed-service-apache-flink).
+--------
 
 A streaming ETL pipeline based on [Apache Flink](https://flink.apache.org/) and [Amazon Kinesis Data Analytics (KDA)](https://aws.amazon.com/kinesis/data-analytics/).
 
